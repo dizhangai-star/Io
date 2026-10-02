@@ -4,6 +4,7 @@
     A = shot.args()                         # A.opt('look', 'dramatic'), A.frames, A.samples, A.pct, A.engine
     ... build the scene sc ...
     shot.run(sc, A)                         # --out DIR → animation · --stills 1,30,60 → preview PNGs · neither → nothing
+                                            # --freeze F (with --out): frames F… from one EXR + keyed exposure (freeze)
 
 --engine cycles (default) | eevee | workbench: run() switches the engine just before rendering, keeping the camera,
 lens, DOF and frame range. workbench = the animatic draft (seconds per frame): flat material colours + cavity + shadow,
@@ -119,8 +120,57 @@ def run(sc, A, tag=None):
     if out:
         os.makedirs(out, exist_ok=True)
         sc.render.filepath = os.path.join(os.path.abspath(out), '')
+        end, F = sc.frame_end, int(A.opt('freeze', 0))
+        if F:
+            sc.frame_end = F - 1
         t = time.time()
         bpy.ops.render.render(animation=True, scene=sc.name)
         dt = time.time() - t
         n = sc.frame_end - sc.frame_start + 1
         print(f'SHOT {tag}: {n} frames in {dt:.0f}s = {dt / n:.1f}s/frame on {gpus}')
+        if F:
+            sc.frame_end = end
+            freeze(sc, F, out)
+
+
+def freeze(sc, F, out):
+    """Frames F…frame_end from one render: frame F is rendered once into a linear EXR (after the compositor, so the
+    glare is in it), then an empty post scene shows that EXR through the same view transform and look with each
+    frame's own exposure (the shot's keyed `view_settings.exposure`) → out/NNNN.png. For a still tail where nothing
+    moves but the exposure (04: the eyes adjust after the eclipse); grain is added at compile."""
+    t = time.time()
+    ev = []
+    for f in range(F, sc.frame_end + 1):
+        sc.frame_set(f)
+        ev.append(sc.view_settings.exposure)
+    sc.frame_set(F)
+    im = sc.render.image_settings
+    fmt, depth = im.file_format, im.color_depth
+    im.file_format, im.color_depth = 'OPEN_EXR', '32'
+    exr = os.path.join(os.path.abspath(out), f'freeze-{F:04d}.exr')
+    sc.render.filepath = exr
+    bpy.ops.render.render(write_still=True, scene=sc.name)
+    im.file_format, im.color_depth = fmt, depth
+
+    post = bpy.data.scenes.new(sc.name + '_Freeze')
+    post.render.engine = 'BLENDER_WORKBENCH'
+    r = post.render
+    r.resolution_x, r.resolution_y, r.resolution_percentage = sc.render.resolution_x, sc.render.resolution_y, \
+        sc.render.resolution_percentage
+    r.image_settings.file_format, r.image_settings.color_depth = fmt, depth
+    post.display_settings.display_device = sc.display_settings.display_device
+    vs = post.view_settings
+    vs.view_transform, vs.look, vs.gamma = sc.view_settings.view_transform, sc.view_settings.look, sc.view_settings.gamma
+    g = bpy.data.node_groups.new(post.name + '_Comp', 'CompositorNodeTree')
+    g.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+    node = g.nodes.new('CompositorNodeImage')
+    node.image = bpy.data.images.load(exr)
+    o = g.nodes.new('NodeGroupOutput')
+    g.links.new(node.outputs['Image'], o.inputs[0])
+    post.compositing_node_group = g
+    r.use_compositing = True
+    for f, e in zip(range(F, sc.frame_end + 1), ev):
+        vs.exposure = e
+        r.filepath = os.path.join(os.path.abspath(out), f'{f:04d}.png')
+        bpy.ops.render.render(write_still=True, scene=post.name)
+    print(f'SHOT {sc.name}: frozen {F}–{sc.frame_end} from one frame in {time.time() - t:.0f}s')

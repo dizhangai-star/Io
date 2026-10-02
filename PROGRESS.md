@@ -81,13 +81,31 @@ Cycles check `frames/03-eternity-check.png` (0.5 / 3.0 / 5.8 / 8.5 / 11.5 s, 50 
 ≈ 288 × ~10 s ≈ 45–50 min. physics: Io sidereal 42.459 h + synodic corrected 42.456 → 42.477 h (table only).
 User review 2026-10-03: locked as is (night ground dark at +1.5 EV, black-sky open/close with the Sun beside the
 hairline crescent). **Next: shot 04 (eclipse; fix its ~10× vs ~280× time compression) in a new session.**
+**Sprint 3 · shot 04 locked (user 2026-10-03).** 20 s version (user 2026-10-03; was 14 s, film ≈ 66 s,
+trim 01/03 or not at the whole-film animatic). Time compression fixed by easing, not a constant: `physics.SHOT['04']`
+(dur 20, pre 2°, contact 4.0 s, gone 9.0 s), `fit04` fits a log-rate smoothstep from 03's end rate (2160×) to 1× →
+619× at 0 s (Sun/stars 1.5°/s), 33× at first contact, 1.4× at second contact, real time from 10.9 s (`lapse04`,
+`lapse04_elong`, `rate04`); `sun_limb_sep` / `sun_visible` (oblate limb, uncovered fraction of the 0.1° disc).
+`s04_eclipse.py` animated (28 mm, locked, 40 m rise, lake + 22 vents as in the spike): the main Sun's energy keyed by
+`sun_visible` with `jupiter.own_sun` (Jupiter lit by its own Sun via light linking, casts no shadow) → Cycles and
+EEVEE agree; Sun disc + glare; stars turn about the pole (3 taps), dense (0.8, gain 8) so the black disc reads as a
+starless hole after the eyes adjust; Jupiter spins with real time; ring controls now keyable (`_ring`: RingArc,
+RingHaze, RingFocus, RingDir; `jupiter.ring_dir`): haze ring from 4° out (the 1 % Lambert crescent alone doesn't read
+at day exposure), Sun-side arc from 3° out flaring while the Sun goes, keeps 6 %; exposure −4.5 → 0 EV over
+10.5–14.5 s (`ADAPT`). Animatic (EEVEE, 1.9 s/frame at 50 %, rendered before the star change: sparse stars)
+`out/04-eclipse-animatic.mp4`; Cycles check `frames/04-eclipse-check.png` (0 / 6.5 / 16 s, 50 %, ≈ 3 s/still).
+**Freeze** (`clip.freeze: 9.5`, render.mjs → `--freeze 229`, `shot.freeze`): frames to 9.5 s rendered (228 × ~9 s
+≈ 35 min), then one linear EXR (after the glare) shown by an empty Workbench post scene through the same AgX view with
+each frame's keyed exposure (478 frames in 5 s; frozen = rendered at PSNR 51 dB in a test). Real renders only.
+User review 2026-10-03: locked as is (flat sunlit plain at 0–4 s and night EV 0 accepted). **Next: shot 05 (forever:
+rise + pull back, plume umbrella, the Sun's diamond on the limb) in a new session.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
-3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 2026-10-03.
+3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 2026-10-03.
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
@@ -103,6 +121,8 @@ hairline crescent). **Next: shot 04 (eclipse; fix its ~10× vs ~280× time compr
   (35 mm leaves no ground) (user 2026-10-02).
 - 02 has no plume; the plume umbrella is in 05 (user 2026-10-03, geometry in State).
 - 03: 39 h, eclipse to eclipse (no eclipse inside), eased rate (user 2026-10-03); EEVEE animatic (light is the beat).
+- 04: 20 s, time eased 619× → real time (Sun in at 4 s, gone at 9 s, black to 10.5, eyes adjust to 14.5, heartbeat,
+  hold); still tail rendered as one EXR + keyed exposure (user 2026-10-03); EEVEE animatic.
 - Scale cues: distant astronaut (ready-made rigged + Mixamo), code-built lander, boot prints.
 - Astronaut = Blend Swap #12622 NASA EMU (user 2026-10-02), gold visor down (the helmet is empty). The helmet is fixed
   to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer
@@ -113,14 +133,14 @@ hairline crescent). **Next: shot 04 (eclipse; fix its ~10× vs ~280× time compr
 
 ## Open technical checks
 - Eclipse ring colour/width (Cassini / New Horizons eclipse images) and how it brightens near contact.
-- Treatment 04 says "real time compressed ~10×", but its beats (Sun 2° from the limb → contact in 3 s) need ~280×:
-  fix in the 04 shot sprint.
 - Caption + counter overlay route for Blender frames (kit compile has no overlay for style `blender`; film-local
   ffmpeg drawtext/ASS pass or a canvas overlay, decide in Sprint 4).
 - Exposure: AgX can't hold sunlit sulfur and a 6-stop-darker eclipse in one exposure: key `film exposure` per shot
   (04 ramps it up after second contact, "eyes adjust").
 
 ## Notes / lessons
+- EEVEE draft of a Cycles scene: a negative view exposure drops the sub-pixel Sun disc (key the exposure in the
+  compositor for EEVEE); Dithered drops a transparent+emission shell (ring material is BLENDED). In skill REALISM.md.
 - Scaled-far scenes: near real-size occluders shadow the scaled Jupiter whenever the Sun is opposite it. Fix with
   light linking (Jupiter's own Sun, only a scaled Io as blocker), which also gives Io's real shadow transit.
 - Jupiter seen from Io turns in 12.95 h, not 9.925 h (Io orbits the same way). World-shader animation gets no Cycles

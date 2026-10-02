@@ -14,7 +14,9 @@ Orientation: object +X toward the observer, +Z = Jupiter's north (= Io's north: 
 
 Eclipse ring: a camera-only shell 0.6 % above the cloud tops whose emission peaks where the line of sight grazes it
 (sunlight refracted and scattered through Jupiter's upper atmosphere), red-orange, brightest toward the Sun's position
-behind the disc. Strength is a shot parameter (keyed with the Sun's distance from the limb).
+behind the disc: emission = core/halo profile × (RingArc · toward^RingFocus + RingHaze). Those Value nodes and the
+Combine XYZ 'RingDir' (the Sun's direction, object space; `ring_dir`) are keyable by a shot (04 keys them on the
+Sun's distance from the limb).
 """
 import math
 import os
@@ -101,6 +103,7 @@ def _ring(sc, jup, centre, rot, R, flat, strength, width, sun_elong):
         so = (rot.to_3x3().transposed() @ su)
         sdir = Vector((0.0, so.y, so.z)).normalized() if so.yz.length > 1e-6 else sdir
     m = bpy.data.materials.new('JupiterRing')
+    m.surface_render_method = 'BLENDED'          # EEVEE: dithered drops a fully transparent pixel with its emission
     g = nodes.Graph(m)
     geo = g.add('ShaderNodeNewGeometry')
     dot = g.add('ShaderNodeVectorMath', operation='DOT_PRODUCT')
@@ -113,10 +116,21 @@ def _ring(sc, jup, centre, rot, R, flat, strength, width, sun_elong):
     tc = g.add('ShaderNodeTexCoord')
     on = g.add('ShaderNodeVectorMath', operation='NORMALIZE')
     g.set(on, 0, g.o(tc, 'Object'))
-    sd = g.add('ShaderNodeVectorMath', operation='DOT_PRODUCT', Vector_001=tuple(sdir))
+    rdir = g.add('ShaderNodeCombineXYZ')                 # keyable: the Sun's direction behind the disc (object space)
+    rdir.name = 'RingDir'
+    for i, v in enumerate(sdir):
+        rdir.inputs[i].default_value = v
+    sd = g.add('ShaderNodeVectorMath', operation='DOT_PRODUCT')
     g.set(sd, 0, g.o(on, 0))
-    toward = g.math('POWER', g.maprange(g.o(sd, 'Value'), -0.3, 1.0), 6.0)
-    amp = g.math('MULTIPLY', g.math('ADD', g.math('MULTIPLY', toward, 8.0), 0.6), strength)
+    g.link(rdir, 0, sd, 1)
+    ctl = {}
+    for k, v in (('RingArc', 8.0 * strength), ('RingHaze', 0.6 * strength), ('RingFocus', 6.0)):
+        n = g.add('ShaderNodeValue')
+        n.name = k
+        n.outputs[0].default_value = v
+        ctl[k] = n
+    toward = g.math('POWER', g.maprange(g.o(sd, 'Value'), -0.3, 1.0), g.o(ctl['RingFocus'], 0))
+    amp = g.math('ADD', g.math('MULTIPLY', toward, g.o(ctl['RingArc'], 0)), g.o(ctl['RingHaze'], 0))
     k = g.math('MULTIPLY', g.math('ADD', core, halo), amp)
     col = g.mix(g.math('POWER', core, 0.5), (1.0, 0.30, 0.10), (1.0, 0.55, 0.28))   # orange core, redder halo
     em = g.add('ShaderNodeEmission')
@@ -129,6 +143,32 @@ def _ring(sc, jup, centre, rot, R, flat, strength, width, sun_elong):
     g.output(g.o(add, 0))
     ob.data.materials.append(m)
     return ob
+
+
+def ring_dir(shell, sun_elong):
+    """Object-space direction (in the disc plane) toward where the Sun sits behind the disc, for 'RingDir'."""
+    rot = shell.matrix_world.to_3x3().normalized()
+    so = rot.transposed() @ Vector(P.sun_local(sun_elong))
+    return Vector((0.0, so.y, so.z)).normalized() if so.yz.length > 1e-6 else Vector((0.0, -1.0, 0.0))
+
+
+def own_sun(sc, sun, jup):
+    """Jupiter lit by its own copy of `sun` (light linking); `sun` lights everything else and Jupiter casts no
+    shadow. For a shot that keys the Sun's strength on the ground (04: the eclipse, by the uncovered fraction of its
+    disc) while Jupiter's sunlit side stays sunlit. Returns Jupiter's sun."""
+    def coll(name, state):
+        c = bpy.data.collections.new(name)
+        c.objects.link(jup)
+        c.collection_objects[0].light_linking.link_state = state
+        return c
+    jup.visible_shadow = False
+    sun.light_linking.receiver_collection = coll('NotJupiter', 'EXCLUDE')
+    sj = bpy.data.objects.new('SunJupiter', sun.data.copy())
+    sc.collection.objects.link(sj)
+    sj.rotation_mode = sun.rotation_mode
+    sj.rotation_euler, sj.rotation_quaternion = sun.rotation_euler, sun.rotation_quaternion
+    sj.light_linking.receiver_collection = coll('OnlyJupiter', 'INCLUDE')
+    return sj
 
 
 def io_shadow(sc, sun, jup, ground, sink=30.0):
