@@ -1,0 +1,7 @@
+{
+  "name": "io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Io · 永恒 — Jupiter seen from Io, rendered in Blender from code, sound by the video kit (Blender Cycles)",
+  "type": "module"
+}

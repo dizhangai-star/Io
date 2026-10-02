@@ -1,0 +1,12 @@
+# renders and previews (reproducible from the scripts)
+frames/
+out/
+audio/build/
+__pycache__/
+*.blend1
+.DS_Store
+logs/
+
+# downloaded maps/models live in the shared ../../_assets/ (see REFERENCES.md); film-local copies only here
+blender/textures/src/
+blender/models/src/

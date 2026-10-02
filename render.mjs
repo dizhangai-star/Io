@@ -1,0 +1,40 @@
+// Film-local render (picture from Blender, not engine.html): clip → out/<id>.mp4, then its sound via the kit's mix.
+// Usage: node render.mjs <id> [--silent] [--samples N] [--pct P] [--look L] [--engine cycles|eevee|workbench] [--animatic] [--keep]
+//   The clip file (clips/<id>.js) names its Blender script in `shot`; frames = duration × fps.
+//   Frames go to frames/<id>/ (deleted after encoding unless --keep). BLENDER env overrides the app path.
+//   --animatic: motion draft → out/<id>-animatic.mp4 (frames/<id>-animatic/), never touches out/<id>.mp4; default
+//   --engine workbench --pct 50. Free like previews: run it before any Cycles render.
+//   Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import { loadClip, rel, config, argv, kitRoot } from '../../_kit/lib/film.mjs';
+
+const BLENDER = process.env.BLENDER ?? '/Applications/Blender.app/Contents/MacOS/Blender';
+const A = argv(undefined, ['silent', 'keep', 'animatic']);
+const anim = A.has('animatic');
+const [id] = A.positional();
+if (!id) { console.error('usage: node render.mjs <id> [--silent] [--samples N] [--pct P] [--look L] [--engine E] [--animatic] [--keep]'); process.exit(1); }
+const C = loadClip(id);
+if (!C.shot) { console.error(`clips/${id}.js has no \`shot\` (blender/shots/<file>.py)`); process.exit(1); }
+const name = anim ? `${id}-animatic` : id;
+const frames = Math.round(C.duration * config.fps), dir = rel(`frames/${name}`);
+fs.rmSync(dir, { recursive: true, force: true });
+
+const opt = (k) => A.opt(k) ?? (anim ? { engine: 'workbench', pct: '50' }[k] : undefined);
+const pass = ['samples', 'pct', 'look', 'engine'].flatMap((k) => (opt(k) ? [`--${k}`, opt(k)] : []));
+const t0 = Date.now();
+const log = execFileSync(BLENDER, ['-b', '--factory-startup', '-P', rel(`blender/shots/${C.shot}`), '--',
+  '--frames', String(frames), '--samples', String(A.opt('samples', config.samples)), ...pass, '--out', dir],
+{ encoding: 'utf8', maxBuffer: 1 << 28 });
+const err = log.split('\n').filter((l) => /Traceback|Error:/.test(l) && !/Not freed memory/.test(l));   // Blender's exit leak report is harmless
+if (err.length) { console.error(err.join('\n')); process.exit(1); }
+console.log(log.split('\n').filter((l) => l.startsWith('SHOT')).join('\n'));
+
+fs.mkdirSync(rel('out'), { recursive: true });
+execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(config.fps), '-i', `${dir}/%04d.png`,
+  '-vf', 'scale=1920:-2,pad=1920:1080:0:(oh-ih)/2:black', '-c:v', 'libx264', '-preset', 'slow', '-crf', String(config.crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', rel(`out/${name}.mp4`)]);
+if (!A.has('keep')) fs.rmSync(dir, { recursive: true, force: true });
+console.log(`${id}: ${frames} frames → out/${name}.mp4 in ${((Date.now() - t0) / 60000).toFixed(1)} min`);
+if (anim && config.soundtrack !== 'none') console.log('animatic: no sound yet (the kit mix writes out/<id>.mp4 only)');
+else if (!A.has('silent') && config.soundtrack !== 'none')
+  execFileSync('node', [`${kitRoot}/audio/mix.mjs`, id], { stdio: 'inherit', env: { ...process.env, FILM_DIR: rel('') } });
