@@ -9,6 +9,7 @@ cut to the shot's azimuth sector, heights from numpy fbm plus a shot's own heigh
 material (bump), not the mesh.
 """
 import math
+import os
 
 import bpy
 import numpy as np
@@ -118,21 +119,29 @@ def ground_z(height, x, y):
 
 
 # ---------------------------------------------------------------- Io surface
-# Palette from Galileo/Voyager colour mosaics (linear): sulfur yellow, pale SO2 frost, ochre/orange, red short-chain
-# sulfur (fresh, near vents), dark silicate lava, greenish-yellow. Io's normal albedo is ~0.6: the light ones dominate.
+# Palette (linear). The site is in Io's reddish-brown polar region: POLAR = the six colour clusters of the USGS
+# colour mosaic within ±200 km of the site (`python3 tools/maps.py io`), dark → light. Scattered over it (user
+# 2026-10-02, "compromise"): pale SO2 frost fields and yellow sulfur deposits, red short-chain sulfur near vents,
+# dark silicate lava.
+POLAR = [(0.217, 0.140, 0.059), (0.259, 0.166, 0.069), (0.301, 0.192, 0.075), (0.340, 0.221, 0.095),
+         (0.399, 0.248, 0.087), (0.479, 0.287, 0.087)]
 PAL = dict(
-    frost=(0.74, 0.71, 0.56),
-    sulfur=(0.62, 0.50, 0.17),
-    green=(0.42, 0.40, 0.15),
+    frost=(0.70, 0.66, 0.50),
+    sulfur=(0.60, 0.47, 0.15),
     ochre=(0.42, 0.20, 0.06),
     red=(0.30, 0.06, 0.025),
     lava=(0.028, 0.023, 0.019),
 )
+# Galileo SSI's sharpest Io frame (PIA02507, 5–6 m/px, public domain): its grey pattern shapes the colour patches at
+# 10 m – 1 km (used as a mask only: it has the Sun's shading baked in). Missing file → a noise stands in.
+GALILEO = os.path.expanduser('~/dev/workspace/claude/videos/_assets/textures/io/galileo/PIA02507.png')
+GALILEO_M_PX = 5.5
 
 
 def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
-    """Io ground. Patches at 3 scales (km, 100 m, 10 m) pick the colour; `dark` (0..1) widens the dark lava flows,
-    `red` the red sulfur. Bump: 20 m undulation, 1 m clods, 5 cm grain. `scale` stretches every size."""
+    """Io ground. Base colour: the site's polar browns, laid out by a km-scale noise mixed with the Galileo pattern;
+    over it frost fields (~10 %), sulfur deposits (~6 %), `red` (0..1) red sulfur, `dark` (0..1) dark lava flows.
+    Bump: 20 m undulation, 1 m clods, 5 cm grain. `scale` stretches every size."""
     m = bpy.data.materials.new(name)
     g = nodes.Graph(m)
     tc = g.add('ShaderNodeTexCoord')
@@ -144,13 +153,31 @@ def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
         return g.o(n, 'Fac')
 
     big, mid, small = noise(900, 3, 0.5, 0.3), noise(110, 5, 0.6), noise(9, 6, 0.6)
-    col = g.ramp(big, [(0.30, PAL['green']), (0.42, PAL['sulfur']), (0.58, PAL['frost']), (0.70, PAL['sulfur'])])
-    col = g.mix(g.maprange(mid, 0.62, 0.70), col, PAL['frost'])                          # frost fields
-    col = g.mix(g.maprange(mid, 0.38 - 0.1 * red, 0.30 - 0.1 * red), col, PAL['ochre'])  # ochre deposits
-    col = g.mix(g.math('MULTIPLY', g.maprange(big, 0.36, 0.30), g.maprange(mid, 0.45, 0.35)), col, PAL['red'])
+    if os.path.exists(GALILEO):
+        img = bpy.data.images.load(GALILEO, check_existing=True)
+        img.colorspace_settings.name = 'Non-Color'
+        w, h = img.size
+        mp = g.add('ShaderNodeMapping')
+        g.set(mp, 'Vector', pos)
+        mp.inputs['Rotation'].default_value = (0.0, 0.0, math.radians(23.0))
+        mp.inputs['Scale'].default_value = (1 / (w * GALILEO_M_PX * scale), 1 / (h * GALILEO_M_PX * scale), 1.0)
+        tex = g.add('ShaderNodeTexImage', extension='MIRROR', interpolation='Cubic')
+        tex.image = img
+        g.set(tex, 'Vector', g.o(mp, 0))
+        gal = g.maprange(g.o(tex, 'Color'), 0.25, 0.80)
+    else:
+        gal = noise(60, 6, 0.65)
+    field = g.math('ADD', g.math('MULTIPLY', big, 0.55), g.math('MULTIPLY', gal, 0.45))
+    n = len(POLAR)
+    col = g.ramp(field, [(0.30 + 0.40 * k / (n - 1), c) for k, c in enumerate(POLAR)])
+    pat = g.math('ADD', g.math('MULTIPLY', mid, 0.5), g.math('MULTIPLY', gal, 0.5))
+    col = g.mix(g.maprange(pat, 0.66, 0.72), col, PAL['frost'])                              # frost fields
+    col = g.mix(g.maprange(noise(320, 4, 0.6), 0.68, 0.73), col, PAL['sulfur'])             # sulfur deposits
+    col = g.mix(g.math('MULTIPLY', g.maprange(big, 0.36, 0.30 - 0.1 * red), g.maprange(mid, 0.45, 0.35)),
+                col, PAL['red'])                                                              # red sulfur
     lava_f = g.math('MULTIPLY', g.maprange(big, 0.70 - 0.2 * dark, 0.76 - 0.2 * dark),
                     g.maprange(small, 0.40, 0.48))
-    col = g.mix(lava_f, col, PAL['lava'])                                                  # dark flow fields
+    col = g.mix(lava_f, col, PAL['lava'])                                                     # dark flow fields
     # scarps and steep faces: layered flows (strata, lenses ~7 m thick) and downslope streaks (talus, frost runs)
     geo = g.add('ShaderNodeNewGeometry')
     _, _, nz = g.xyz(g.o(geo, 'Normal'))
@@ -160,8 +187,8 @@ def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
     lay.inputs['Scale'].default_value = (1 / (90.0 * scale), 1 / (90.0 * scale), 1 / (7.0 * scale))
     wave = g.add('ShaderNodeTexNoise', Scale=1.0, Detail=3, Roughness=0.5, Distortion=0.4)
     g.set(wave, 'Vector', g.o(lay, 0))
-    strata = g.ramp(g.o(wave, 'Fac'), [(0.10, PAL['frost']), (0.40, PAL['sulfur']), (0.65, PAL['ochre']),
-                                       (0.90, PAL['frost'])])
+    strata = g.ramp(g.o(wave, 'Fac'), [(0.10, PAL['frost']), (0.35, POLAR[4]), (0.60, POLAR[1]),
+                                       (0.80, PAL['ochre']), (0.95, PAL['frost'])])
     col = g.mix(g.math('MULTIPLY', steep, g.maprange(mid, 0.3, 0.7, 0.15, 0.55)), col, strata)
     mp = g.add('ShaderNodeMapping')
     g.set(mp, 'Vector', pos)

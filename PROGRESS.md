@@ -1,7 +1,7 @@
 # Io · 永恒: progress
 
 ## State (2026-10-02)
-**Sprint 1 (look spike) built, waiting for the user's look approval.** Stills in `frames/spike/` (sheet.png):
+**Sprint 1 (look spike) done 2026-10-02.** Stills in `frames/spike/` (sheet.png):
 02 day (Sun 2.6° up, Jupiter 41 % lit, sunlit ridge), 02 night (Sun −13°, Jupiter 93 % lit, ridge + figures in
 silhouette), 04 eclipse peak (28 mm, black disc + red ring, lava lake, stars). Libs: `blender/lib/io_world.py`
 (polar terrain on the curved surface, Io surface, lava lake, vents, Io-body occluder, astronaut/lander proxies),
@@ -16,12 +16,15 @@ paler than PIA07782; 02 exposure −4.8). Downloaded the USGS Io colour mosaic +
 cuts our real site (75° N on the sub-Jupiter meridian) out of the mosaic: **the data there is smeared (no good
 coverage poleward of ~60°)**, and its colours are the polar orange-brown (site mean linear 0.31/0.20/0.08), not the
 yellow equatorial plains the code palette assumed.
-**Next:** user decides the ground's colour direction (real polar orange-brown vs iconic yellow; how to use the Galileo
-close-ups), then wire it into `io_world.surface`; then Sprint 2 (astronaut).
+**Ground colour (user 2026-10-02: compromise):** `io_world.surface` base = the site's six measured polar browns
+(`POLAR`), laid out by km noise + the Galileo PIA02507 pattern (5.5 m/px, mirrored, mask only), with frost fields
+(~10 %), sulfur deposits (~6 %), red sulfur and dark lava on top (`frames/spike/ground-polar-test.png`: 04 framing
+with the Sun 11° up, and 02 day). Low sun + AgX makes the plain read grey-tan; judge saturation in 01/03 look-dev.
+**Next: Sprint 2, astronaut** (rigged model: show author/licence/preview first; Mixamo clip, user downloads).
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
-1. Look spike: 2 stills (02, 04) → user approves the look. (built 2026-10-02, awaiting approval)
+1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. Astronaut: pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session).
@@ -35,6 +38,7 @@ close-ups), then wire it into `io_world.surface`; then Sprint 2 (astronaut).
   up only while Jupiter < half lit; full Jupiter happens at night. Shot Sun positions = `physics.SHOT` elongations.
 - Renderer: Cycles for every shot (light is the subject: phase, eclipse, vacuum shadows); Workbench animatics.
 - No narration; EN (Cinzel) + 简中 (Noto Serif SC) captions in clip `caps`; 03 counter `+0 h → +42 h`.
+- Ground: the site's real polar orange-brown (USGS mosaic) + scattered frost/sulfur patches (user 2026-10-02).
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
 - Scale cues: distant astronaut (ready-made rigged + Mixamo), code-built lander, boot prints.
