@@ -69,6 +69,76 @@ def px_across(ang_deg, lens_mm, width_px=1920, sensor=36.0):
     return width_px * math.tan(math.radians(ang_deg / 2)) / (sensor / 2 / lens_mm)
 
 
+# ---------------------------------------------------------------- the site and its sky (user 2026-10-02)
+# The site is SITE_THETA from the sub-Jupiter point toward Io's north pole (latitude 75° N on the sub-Jupiter
+# meridian): Jupiter due south, its axis upright in the frame (bands horizontal); the Sun runs low round the sky along
+# the celestial equator, at most 15° up, and is up only while Jupiter is less than half lit.
+# Io frame: Xi → Jupiter, Zi → Io's north pole, Yi = Zi × Xi = east (Io turns prograde, so the sky turns east → west).
+# Local frame (Blender): X = west (right, facing Jupiter), Y = south (toward Jupiter), Z = up. 1 BU = 1 m.
+# The Sun's place is its signed elongation from Jupiter E (deg): E > 0 east of Jupiter (morning, before the eclipse),
+# 0 = behind Jupiter, E < 0 west (after); E falls 8.48°/h. Jupiter's 3° obliquity (seasonal tilt of the Sun's path) is
+# ignored: the Sun passes behind Jupiter's equator.
+SITE_THETA = 75.0
+R_SUN_DEG = deg(math.atan(R_SUN / (AU_J * AU)))              # Sun's angular radius
+
+
+def _io_to_local(v):
+    """Io-frame vector → local (west, south, up)."""
+    t = math.radians(SITE_THETA)
+    up = (math.cos(t), 0.0, math.sin(t))
+    south = (math.sin(t), 0.0, -math.cos(t))
+    west = (0.0, -1.0, 0.0)
+    return tuple(sum(a * b for a, b in zip(v, axis)) for axis in (west, south, up))
+
+
+def jupiter_local():
+    """Jupiter as seen from the site: (unit direction, distance km, angular radius eq deg, polar deg, axis unit)."""
+    t = math.radians(SITE_THETA)
+    v = (A_IO - R_IO * math.cos(t), 0.0, -R_IO * math.sin(t))
+    d = math.sqrt(sum(c * c for c in v))
+    u = _io_to_local(tuple(c / d for c in v))
+    return u, d, deg(math.asin(R_J / d)), deg(math.asin(R_J_POL / d)), _io_to_local((0.0, 0.0, 1.0))
+
+
+def sun_local(elong):
+    """Unit vector toward the Sun at signed elongation elong (deg)."""
+    h = math.radians(elong)
+    return _io_to_local((math.cos(h), math.sin(h), 0.0))
+
+
+def alt_az(u):
+    """(elevation, azimuth) deg of a local unit vector; azimuth 0 = Jupiter (south), + = toward west (right)."""
+    return deg(math.asin(u[2])), deg(math.atan2(u[0], u[1]))
+
+
+def lit_fraction(elong):
+    """Fraction of Jupiter's disc lit; phase angle = 180° − |elongation|."""
+    return (1 - math.cos(math.radians(abs(elong)))) / 2
+
+
+def jupiter_shine(elong):
+    """Irradiance (W/m²) from Jupiter on a surface facing it, for a Lambert sphere at phase angle 180° − |E|."""
+    a = math.radians(180 - abs(elong))
+    phi = (math.sin(a) + (math.pi - a) * math.cos(a)) / math.pi
+    _, d, *_ = jupiter_local()
+    return P_GEOM_J * S_EARTH / AU_J ** 2 * (R_J / d) ** 2 * phi
+
+
+def contact_elong():
+    """Elongation (deg) at which the Sun's limb touches Jupiter's equatorial limb (first / last contact)."""
+    return jupiter_local()[2] + R_SUN_DEG
+
+
+E_SUN = S_EARTH / AU_J ** 2                                   # W/m², sunlight at Io
+
+# Per-shot picks (directing), everything else derived. 02 (user 2026-10-02: night): the Sun 13° below the horizon,
+# Jupiter 93 % lit, the ridge and the figures in silhouette against it; 04 still: the Sun 2.5° inside the limb (eclipse peak in the beat sheet).
+SHOT = {
+    '02': dict(elong=150.0),
+    '04': dict(elong=contact_elong() - 2.5),
+}
+
+
 if __name__ == '__main__':
     rows = []
     d_sub = A_IO - R_IO
@@ -97,6 +167,23 @@ if __name__ == '__main__':
     for lens in (24, 35, 50, 85, 135):
         hfov = 2 * deg(math.atan(18 / lens))
         rows.append((f'{lens} mm (hfov {hfov:.1f}°)', f'Jupiter ≈ {px_across(dj, lens):.0f} px across of 1920'))
+    u, d, rj, rjp, ax = jupiter_local()
+    el, az = alt_az(u)
+    rows.append((f'Site: {SITE_THETA:.0f}° toward the north pole', f'Jupiter centre el {el:.2f}° az {az:.1f}°, '
+                 f'radius {rj:.2f}° eq / {rjp:.2f}° pol, distance {d:,.0f} km, axis upright in frame (bands horizontal)'))
+    rows.append(('Jupiter-shine on flat ground, full Jupiter', f'{jupiter_shine(180) * u[2]:.3f} W/m² '
+                 f'(Jupiter {el:.1f}° up; {jupiter_shine(180):.2f} W/m² facing it)'))
+    rows.append(('First/last contact (Sun limb on Jupiter limb)', f'elongation ±{contact_elong():.2f}°, '
+                 f'{contact_elong() / (360 / P_SYN) * 60:.0f} min before/after mid-eclipse'))
+    for E in (150, 120, 90, 75, 60, 30, contact_elong(), 0):
+        se, sa = alt_az(sun_local(E))
+        rows.append((f'Sun at elongation {E:.1f}° (east)', f'el {se:+.1f}° az {sa:+.1f}°; Jupiter {100 * lit_fraction(E):.0f} % lit; '
+                     f'sun on flat ground {max(0, E_SUN * math.sin(math.radians(se))):.2f} W/m², '
+                     f'Jupiter-shine facing it {jupiter_shine(E):.3f} W/m²'))
+    for k, s in SHOT.items():
+        se, sa = alt_az(sun_local(s['elong']))
+        rows.append((f'Shot {k}', f'elongation {s["elong"]:.2f}°: Sun el {se:.2f}° az {sa:+.1f}°, '
+                     f'Jupiter {100 * lit_fraction(s["elong"]):.0f} % lit'))
     w = max(len(a) for a, _ in rows)
     for a, b in rows:
         print(f'| {a:<{w}} | {b} |')

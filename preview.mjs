@@ -1,5 +1,6 @@
 // Film-local preview (Blender stills, low res): frames at chosen times → one grid PNG, frames/<id>-strip.png.
 // Usage: node preview.mjs <id> <t…> | --every S   [--pct 25] [--samples 24] [--cols 3] [--look L] [--engine eevee]
+//        [--x k=v,k=v]   shot-specific options, passed as --k v (e.g. --x elong=150,exposure=-2.5)
 //        node preview.mjs film [--at 0.5]           contact sheet, one frame per film clip (from out/<id>.mp4 renders)
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -36,7 +37,8 @@ const every = A.opt('every');
 const times = every ? Array.from({ length: Math.floor(C.duration / +every) + 1 }, (_, k) => k * +every) : ts.map(Number);
 if (!times.length) { console.error('give times (s) or --every S'); process.exit(1); }
 const fr = times.map((t) => Math.min(Math.round(C.duration * config.fps), Math.max(1, Math.round(t * config.fps) + 1)));
-const pass = ['look', 'engine'].flatMap((k) => (A.opt(k) ? [`--${k}`, A.opt(k)] : []));
+const pass = ['look', 'engine'].flatMap((k) => (A.opt(k) ? [`--${k}`, A.opt(k)] : []))
+  .concat(String(A.opt('x', '')).split(',').filter(Boolean).flatMap((kv) => { const [k, ...v] = kv.split('='); return [`--${k}`, v.join('=')]; }));
 const log = execFileSync(BLENDER, ['-b', '--factory-startup', '-P', rel(`blender/shots/${C.shot}`), '--',
   '--frames', String(Math.round(C.duration * config.fps)), '--samples', A.opt('samples', '24'), '--pct', A.opt('pct', '25'),
   ...pass, '--id', id, '--stills', fr.join(','), '--stills-dir', rel('frames')], { encoding: 'utf8', maxBuffer: 1 << 28 });
