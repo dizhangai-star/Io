@@ -147,6 +147,15 @@ SHOT = {
     # 04 (beat sheet): the Sun `pre`° off the limb at 0 s, touches it at `contact` s, gone at `gone` s; time slows
     # from 03's end rate (0.6 h/s) to real time (log-rate eased, fit04), so the eclipse itself plays in real time.
     '04': dict(dur=20.0, pre=2.0, contact=4.0, gone=9.0),     # 20 s version (user 2026-10-03; was 14 / 3 / 5)
+    # 05 (user 2026-10-03: rise as high as looks best → 100 km; the plume lights with the diamond). The cut from 04
+    # skips ~2 h 17 min of the eclipse: 05 opens `contact` s before third contact in real time; from contact the rate
+    # eases (smoothstep over `ramp` s) up to the rate that brings the whole Sun out by `full` s. Camera: holds `hold`
+    # s, then rises log-eased (smoothstep in log altitude) from alt[0] m to alt[1] km by `rise` s, the lens zooming
+    # lens[0] → lens[1] mm with the disc's top kept 1° under the frame top. Plume (Prometheus-type umbrella): apex
+    # `h` km, ejecta up to `cone`° off vertical, vent `d` km from the site at azimuth `az`°: a little east, so the
+    # sweeping light reaches it ≈ 2 s after the diamond (west of the site it lit before third contact).
+    '05': dict(dur=10.0, contact=5.0, full=8.0, ramp=2.0, hold=1.0, rise=9.0, alt=(0.8, 100.0), lens=(29.0, 17.0),
+               plume=dict(h=100.0, cone=24.0, d=450.0, az=-6.0)),
 }
 
 
@@ -262,6 +271,87 @@ def lapse04_elong(s):
     return fit04()[3] - lapse04(s) / 3600 * SUN_RATE
 
 
+def egress05():
+    """05: (e3, e4, T, r1): elongation (deg, < 0, west) at third contact (the Sun's leading limb leaves Jupiter's
+    west limb) and at fourth (the whole disc out), the real seconds between, and the eased peak rate."""
+    c = SHOT['05']
+    e3, e4 = -_elong_at_sep(-R_SUN_DEG), -_elong_at_sep(R_SUN_DEG)
+    T = (e3 - e4) / SUN_RATE * 3600
+    # τ(full) = (full − contact) + (r1 − 1)·(full − contact − ramp/2) = T
+    r1 = 1 + (T - (c['full'] - c['contact'])) / (c['full'] - c['contact'] - c['ramp'] / 2)
+    return e3, e4, T, r1
+
+
+def rate05(s):
+    c = SHOT['05']
+    r1 = egress05()[3]
+    x = min(max((s - c['contact']) / c['ramp'], 0.0), 1.0)
+    return 1 + (r1 - 1) * x * x * (3 - 2 * x)
+
+
+def lapse05(s):
+    """05: clip second → real seconds since third contact (real time before it, eased up after)."""
+    c = SHOT['05']
+    r1 = egress05()[3]
+    x = s - c['contact']
+    if x <= 0:
+        return x
+    G = c['ramp'] * _S(x / c['ramp']) if x < c['ramp'] else c['ramp'] / 2 + x - c['ramp']
+    return x + (r1 - 1) * G
+
+
+def lapse05_elong(s):
+    """05: the Sun's elongation (deg) at clip second s (falling: the Sun leaves Jupiter's west limb)."""
+    return egress05()[0] - lapse05(s) / 3600 * SUN_RATE
+
+
+def sun_offset_dir(elong):
+    """Unit vector (local) across the sky from Jupiter's centre toward the Sun (perpendicular to Jupiter's direction).
+    A point displaced Δ (km) from the site sees Jupiter shifted −Δ/d by parallax, so the Sun's limb distance there is
+    sun_limb_sep + deg(Δ·n / d): the eclipse shadow's edge sweeps across the ground (05)."""
+    u, s = jupiter_local()[0], sun_local(elong)
+    k = sum(a * b for a, b in zip(s, u))
+    n = tuple(a - k * b for a, b in zip(s, u))
+    m = math.sqrt(sum(a * a for a in n))
+    return tuple(a / m for a in n)
+
+
+def rise05(s):
+    """05: camera altitude (m) above the ground at clip second s (smoothstep in log altitude)."""
+    c = SHOT['05']
+    x = min(max((s - c['hold']) / (c['rise'] - c['hold']), 0.0), 1.0)
+    x = x * x * (3 - 2 * x)
+    a0, a1 = math.log(c['alt'][0]), math.log(c['alt'][1] * 1000)
+    return math.exp(a0 + (a1 - a0) * x), x
+
+
+def lens05(x):
+    """05: focal length (mm) at rise progress x (0..1, log-interpolated like the altitude)."""
+    l0, l1 = SHOT['05']['lens']
+    return math.exp(math.log(l0) + (math.log(l1) - math.log(l0)) * x)
+
+
+def dip(alt_km):
+    """Horizon dip (deg) and distance (km) seen from alt_km above a smooth Io."""
+    return deg(math.acos(R_IO / (R_IO + alt_km))), math.sqrt(2 * R_IO * alt_km + alt_km ** 2)
+
+
+def umbrella(h_max, cone):
+    """A ballistic plume (1/r gravity, no air): launch speed for apex h_max (km) straight up, and the surface range
+    (km) of a particle launched at `cone` deg off vertical with that speed: the radius of the deposit ring, where the
+    umbrella's outer curtain lands. Returns (v km/s, ring radius km, its flight s)."""
+    v = plume(h_max)[0]
+    a = math.radians(cone)
+    x, y, vx, vy, t, dt = 0.0, R_IO, v * math.sin(a), v * math.cos(a), 0.0, 0.25
+    while True:
+        r = math.hypot(x, y)
+        g = GM_IO / r ** 3
+        vx, vy = vx - g * x * dt, vy - g * y * dt
+        x, y, t = x + vx * dt, y + vy * dt, t + dt
+        if math.hypot(x, y) <= R_IO:
+            return v, R_IO * math.atan2(x, y), t
+
+
 def lapse03_second(h):
     """Inverse of lapse03 (bisection)."""
     lo, hi = 0.0, SHOT['03']['dur']
@@ -334,6 +424,29 @@ if __name__ == '__main__':
                  f'{rt(0) * SUN_RATE / 3600:.2f}°/s at 0 s); Sun {100 * sun_visible(e0):.0f} % → '
                  f'{100 * sun_visible(lapse04_elong((c["contact"] + c["gone"]) / 2)):.0f} % at '
                  f'{(c["contact"] + c["gone"]) / 2:.1f} s → {100 * sun_visible(e2):.0f} %'))
+    c = SHOT['05']
+    e3, e4, T, r1 = egress05()
+    _, dj_km, *_ = jupiter_local()
+    n = sun_offset_dir(e3)
+    se, sa = alt_az(sun_local(e3))
+    rows.append(('Shot 05 eclipse egress', f'{c["dur"]:.0f} s; the cut from 04 skips '
+                 f'{((e2 - e3) / SUN_RATE * 3600 - (lapse04(SHOT["04"]["dur"]) - lapse04(SHOT["04"]["gone"])) - c["contact"]) / 60:.0f} min; third contact '
+                 f'(elongation {e3:.2f}°, Sun el {se:.1f}° az {sa:+.1f}°, west limb) at {c["contact"]:.1f} s in real '
+                 f'time, then eased to {r1:.1f}× over {c["ramp"]:.0f} s: whole Sun out ({e4:.2f}°, {T:.0f} s real) at '
+                 f'{c["full"]:.1f} s; Sun {100 * sun_visible(lapse05_elong(6.0)):.0f} % at 6 s, '
+                 f'{100 * sun_visible(lapse05_elong(7.0)):.0f} % at 7 s; the shadow edge sweeps the ground toward '
+                 f'({n[0]:+.2f}, {n[1]:+.2f}, {n[2]:+.2f}) at {V_IO:.1f} km/s × rate ({V_IO * r1:.0f} km/s at the peak); '
+                 f'penumbra {2 * R_SUN_DEG * math.pi / 180 * dj_km:.0f} km wide'))
+    for s in (0.0, c['hold'], 3.0, c['contact'], 7.0, c['rise']):
+        a, x = rise05(s)
+        dp, dh = dip(a / 1000)
+        rows.append((f'Shot 05 camera at {s:.1f} s', f'{a:,.1f} m up, {lens05(x):.1f} mm; horizon dip {dp:.2f}°, '
+                     f'{dh:,.1f} km away'))
+    p = c['plume']
+    v, ring, tf = umbrella(p['h'], p['cone'])
+    rows.append(('Shot 05 plume', f'apex {p["h"]:.0f} km (vent {v * 1000:.0f} m/s), ejecta ≤ {p["cone"]:.0f}° off '
+                 f'vertical → deposit ring radius {ring:.0f} km (flight {tf / 60:.1f} min); vent {p["d"]:.0f} km out at '
+                 f'az {p["az"]:+.0f}°: {hidden(p["d"]):.0f} km hidden from the ground'))
     for k, s in SHOT.items():
         if 'elong' not in s:
             continue

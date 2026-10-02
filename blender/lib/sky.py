@@ -26,14 +26,17 @@ def sun(sc, elong, strength=None):
     return ob
 
 
-def stars(sc, px_rad, gain=1.0, density=0.35, cell=0.012, seed=0.0, axis=None, taps=1):
+def stars(sc, px_rad, gain=1.0, density=0.35, cell=0.012, seed=0.0, axis=None, taps=1, camera_only=False, orient=None):
     """Black world + procedural stars: one per Voronoi cell (cell ≈ `cell` rad) kept with probability `density`,
     a round spot `px_rad` radians in radius (≈ 1 px at the shot's lens and resolution), brightness heavy-tailed
     (rand⁸: a few bright, many faint), colour 3500–11000 K. `gain` = the brightest star's radiance.
     `axis` (local unit vector: Io's pole, physics.jupiter_local()[4]) makes the sky turnable: returns (world, turn,
     smear), two Value nodes a shot keys: turn = the stars' rotation about the pole so far (rad, + = the way they move,
     east → west), smear = their rotation during the shutter (rad), spread over `taps` lookups (star trails; the
-    trail's light is shared out, as on film). Without `axis`: returns the world (the static sky of 01/02/04)."""
+    trail's light is shared out, as on film). Without `axis`: returns the world (the static sky of 01/02/04).
+    `camera_only`: the stars light nothing (as world light their mean radiance, ∝ the spot area, lit 05's eclipsed
+    Jupiter at preview resolutions). `orient` (axis, angle rad): turn the star lattice; a 3D Voronoi sliced by the sky
+    sphere shows concentric rings where a lattice axis points (az 0°, el 0° by default: 05 frames it)."""
     w = bpy.data.worlds.new(sc.name + '_Sky')
     sc.world = w
     w.use_nodes = True
@@ -59,6 +62,15 @@ def stars(sc, px_rad, gain=1.0, density=0.35, cell=0.012, seed=0.0, axis=None, t
             g.set(rot, 'Axis', tuple(axis))
             g.set(rot, 'Angle', ang)        # view direction → the inertial sky: undo the turn (stars drift + about the pole)
             dirs.append(g.o(rot, 0))
+    if orient is not None:
+        rd = []
+        for vec in dirs:
+            ro = g.add('ShaderNodeVectorRotate', rotation_type='AXIS_ANGLE')
+            g.set(ro, 'Vector', vec)
+            g.set(ro, 'Axis', tuple(orient[0]))
+            g.set(ro, 'Angle', orient[1])
+            rd.append(g.o(ro, 0))
+        dirs = rd
     total = None
     for vec in dirs:
         nrm = g.add('ShaderNodeVectorMath', operation='NORMALIZE')
@@ -84,6 +96,9 @@ def stars(sc, px_rad, gain=1.0, density=0.35, cell=0.012, seed=0.0, axis=None, t
     g.set(bb, 'Temperature', g.maprange(temp, 0.0, 1.0, 3500.0, 11000.0))
     bg = g.add('ShaderNodeBackground')
     g.set(bg, 'Color', g.o(bb, 0))
+    if camera_only:
+        lp = g.add('ShaderNodeLightPath')
+        total = g.math('MULTIPLY', total, g.o(lp, 'Is Camera Ray'))
     g.set(bg, 'Strength', total)
     g.link(bg, 0, out, 'Surface')
     return w if axis is None else (w, turn, smear)

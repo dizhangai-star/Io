@@ -81,6 +81,9 @@ def engine(sc, A):
     """Switch sc to A.engine (render settings for Cycles are already set by rig.render_settings)."""
     e = A.engine
     sc.render.engine = ENGINES[e]
+    if e == 'eevee' and A.opt('draft'):       # animatic (render.mjs --animatic): motion, not looks
+        sc.eevee.taa_render_samples = 16
+        sc.render.use_motion_blur = False
     if e != 'workbench':
         return
     sc.view_settings.exposure = 0.0           # studio light: the Cycles exposure (set for true irradiance) would blacken it
