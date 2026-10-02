@@ -82,6 +82,7 @@ def engine(sc, A):
     sc.render.engine = ENGINES[e]
     if e != 'workbench':
         return
+    sc.view_settings.exposure = 0.0           # studio light: the Cycles exposure (set for true irradiance) would blacken it
     sh = sc.display.shading
     sh.light, sh.color_type = 'STUDIO', 'TEXTURE'     # image-textured parts show their image, the rest diffuse_color
     sh.show_cavity, sh.cavity_type = True, 'BOTH'

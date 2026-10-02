@@ -138,10 +138,13 @@ GALILEO = os.path.expanduser('~/dev/workspace/claude/videos/_assets/textures/io/
 GALILEO_M_PX = 5.5
 
 
-def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
+def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0, frost=0.0, prints=False, clod=0.25):
     """Io ground. Base colour: the site's polar browns, laid out by a km-scale noise mixed with the Galileo pattern;
-    over it frost fields (~10 %), sulfur deposits (~6 %), `red` (0..1) red sulfur, `dark` (0..1) dark lava flows.
-    Bump: 20 m undulation, 1 m clods, 5 cm grain. `scale` stretches every size."""
+    over it frost fields (~10 %; `frost` 0..1 widens them), sulfur deposits (~6 %), `red` (0..1) red sulfur, `dark`
+    (0..1) dark lava flows. `prints`: the mesh's 'prints' point attribute (lib/prints.py) marks trodden soil: frost
+    broken, the brown underneath compacted (darker, a little smoother).
+    Bump: 20 m undulation, 1 m clods (`clod` m; less for a close-up, where the mesh carries the relief), 5 cm grain.
+    `scale` stretches every size."""
     m = bpy.data.materials.new(name)
     g = nodes.Graph(m)
     tc = g.add('ShaderNodeTexCoord')
@@ -171,7 +174,7 @@ def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
     n = len(POLAR)
     col = g.ramp(field, [(0.30 + 0.40 * k / (n - 1), c) for k, c in enumerate(POLAR)])
     pat = g.math('ADD', g.math('MULTIPLY', mid, 0.5), g.math('MULTIPLY', gal, 0.5))
-    col = g.mix(g.maprange(pat, 0.66, 0.72), col, PAL['frost'])                              # frost fields
+    col = g.mix(g.maprange(pat, 0.66 - 0.25 * frost, 0.72 - 0.25 * frost), col, PAL['frost'])  # frost fields
     col = g.mix(g.maprange(noise(320, 4, 0.6), 0.68, 0.73), col, PAL['sulfur'])             # sulfur deposits
     col = g.mix(g.math('MULTIPLY', g.maprange(big, 0.36, 0.30 - 0.1 * red), g.maprange(mid, 0.45, 0.35)),
                 col, PAL['red'])                                                              # red sulfur
@@ -199,9 +202,14 @@ def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0):
     col = g.mix(g.maprange(small, 0.35, 0.75, 0.0, 0.25), col, (0.25, 0.20, 0.10), blend='MULTIPLY')  # grit
     b = g.add('ShaderNodeBsdfPrincipled', Roughness=0.92)
     b.inputs['Specular IOR Level'].default_value = 0.25
+    if prints:
+        at = g.add('ShaderNodeAttribute', attribute_name='prints')
+        pm = g.o(at, 'Fac')
+        col = g.mix(g.math('MULTIPLY', pm, 0.5), col, tuple(0.9 * c for c in POLAR[2]))
+        g.set(b, 'Roughness', g.maprange(pm, 0.0, 1.0, 0.92, 0.8))
     g.set(b, 'Base Color', col)
-    clod, grain = noise(1.0, 6, 0.6), noise(0.05, 4, 0.5)
-    h = g.math('ADD', g.math('MULTIPLY', noise(20, 3), 1.5), g.math('MULTIPLY', clod, 0.25))
+    clods, grain = noise(1.0, 6, 0.6), noise(0.05, 4, 0.5)
+    h = g.math('ADD', g.math('MULTIPLY', noise(20, 3), 1.5), g.math('MULTIPLY', clods, clod))
     h = g.math('ADD', h, g.math('MULTIPLY', grain, 0.012))
     bp = g.add('ShaderNodeBump', Strength=1.0, Distance=1.0)
     g.set(bp, 'Height', h)
