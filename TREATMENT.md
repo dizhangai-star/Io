@@ -30,6 +30,7 @@ On Io, Jupiter never comes for you. It is already there, a fifth of the sky, and
 | fact | value |
 |---|---|
 | Jupiter angular diameter | **19.6°** equatorial, 18.3° polar (38× the Moon from Earth) |
+| Site (user 2026-10-02) | 75° from the sub-Jupiter point **toward Io's north pole** (lat 75° N): Jupiter due south, bands horizontal; the Sun circles low (≤ 15°), is up only while Jupiter is < half lit, and the eclipse is at local noon. Sun place/phase/light per elongation: `physics.py` site rows |
 | Jupiter's place in the sky | fixed (Io is tidally locked); elevation set by where you stand: 60° from the sub-Jupiter point → centre 29.8°, 70° → 19.8°, **75° → 14.8° (lower limb 5.0°, our location)**, 80° → limb on the horizon |
 | Sun | 0.10° wide, 50.3 W/m² = 1/27 of Earth; moves 8.48°/h across Io's sky (stars likewise) |
 | Phase ↔ ground light | Sun 90° from Jupiter → half-Jupiter, ground sunlit · Sun near Jupiter → crescent · Sun behind → **eclipse** · Sun opposite (below our horizon) → full Jupiter, **ground lit only by Jupiter-shine: 0.78 W/m² = 1.6 % of sunlight (6 stops down), ≈ 290× full moonlight** |
@@ -55,9 +56,9 @@ Jupiter is a wall with no edges, which is the megalophobia image (02).
 | # | clip | dur | lens / camera | action | caption |
 |---|---|---:|---|---|---|
 | 01 | horizon | 9 s | 24 mm, eye 1.6 m, slow tilt −30° → +14° | prints and a lander foot in frost → black starry sky → Jupiter's lower limb enters, ends filling the upper third | IO · 木卫一 |
-| 02 | scale | 11 s | 135 mm, locked, 1.5 km from the ridge | astronaut (idle, head turns up) + lander on a ridge; Jupiter (half-lit) wider than the frame behind; a plume umbrella rises at the left | JUPITER · 19° OF SKY / 它占据五分之一个天空 |
+| 02 | scale | 11 s | 135 mm, locked, 1 km from the ridge | night (Sun 13° down): astronaut (idle, head turns up) + lander in silhouette on a ridge; Jupiter (93 % lit) wider than the frame behind; a plume umbrella rises at the left | JUPITER · 19° OF SKY / 它占据五分之一个天空 |
 | 03 | eternity | 12 s | 20 mm, locked, wide | 42 h in 12 s: Sun + stars wheel, shadows sweep, phase full → half → crescent, GRS rolls past; Jupiter still; counter +0 h → +42 h | IT NEVER RISES. IT NEVER SETS. / 它不升起，也不落下 |
-| 04 | eclipse | 14 s | 35 mm, locked, whole disc in frame | real time compressed ~10×: crescent thins, Sun meets the limb, gone → black disc + red ring, ground dark, Loki-type lava glows, stars bloom | — (silence) |
+| 04 | eclipse | 14 s | 28 mm, locked, whole disc in frame, from a 40 m rise | real time compressed ~10×: crescent thins, Sun meets the limb, gone → black disc + red ring, ground dark, Loki-type lava glows, stars bloom | — (silence) |
 | 05 | forever | 10 s | 35 → 24 mm, rise + pull back 2 m → 3 km | astronaut → plain → the curve of Io under the black disc; the Sun's diamond on the limb; fade to black | EVERY 42 HOURS. FOREVER. / 每 42 小时，永远 |
 | 06 | title | 4 s | card | IO · 永恒 on black | — |
 
