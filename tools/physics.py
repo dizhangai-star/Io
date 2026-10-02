@@ -144,7 +144,9 @@ SHOT = {
     '01': dict(elong=70.0),
     '03': dict(hours=39.0, dur=12.0, rate0=0.6, ramp_in=2.0, ramp_out=3.0),
     '02': dict(elong=150.0),
-    '04': dict(elong=contact_elong() - 2.5),
+    # 04 (beat sheet): the Sun `pre`° off the limb at 0 s, touches it at `contact` s, gone at `gone` s; time slows
+    # from 03's end rate (0.6 h/s) to real time (log-rate eased, fit04), so the eclipse itself plays in real time.
+    '04': dict(dur=20.0, pre=2.0, contact=4.0, gone=9.0),     # 20 s version (user 2026-10-03; was 14 / 3 / 5)
 }
 
 
@@ -173,6 +175,91 @@ def lapse03_elong(h):
     west of Jupiter (just past the last eclipse) and ends east of it (before the next one, shot 04)."""
     e = 180 + SHOT['03']['hours'] / 2 * SUN_RATE - h * SUN_RATE
     return (e + 180) % 360 - 180
+
+
+def sun_limb_sep(elong):
+    """Angular distance (deg) of the Sun's centre outside Jupiter's limb (< 0: behind it), along the line from
+    Jupiter's centre, using the oblate disc's radius at the Sun's position angle."""
+    u, _, r_eq, r_pol, ax = jupiter_local()
+    s = sun_local(elong)
+    dot = lambda a, b: sum(x * y for x, y in zip(a, b))
+    z = tuple(a - dot(ax, u) * b for a, b in zip(ax, u))                       # north on the disc
+    y = (u[1] * z[2] - u[2] * z[1], u[2] * z[0] - u[0] * z[2], u[0] * z[1] - u[1] * z[0])
+    phi = math.atan2(dot(s, z), dot(s, y))
+    r = r_eq * r_pol / math.hypot(r_pol * math.cos(phi), r_eq * math.sin(phi))
+    return deg(math.acos(max(-1.0, min(1.0, dot(s, u))))) - r
+
+
+def sun_visible(elong):
+    """Fraction of the Sun's disc not hidden by Jupiter (the limb is straight across a 0.1° Sun)."""
+    x = max(-1.0, min(1.0, sun_limb_sep(elong) / R_SUN_DEG))
+    return 1 - (math.acos(x) - x * math.sqrt(1 - x * x)) / math.pi
+
+
+def _elong_at_sep(sep):
+    lo, hi = 0.0, 40.0
+    for _ in range(60):
+        m = (lo + hi) / 2
+        lo, hi = (m, hi) if sun_limb_sep(m) < sep else (lo, m)
+    return lo
+
+
+def _rate04(s, t0, t1):
+    """04: time rate (real s per clip s): log-rate eased (smoothstep) from 03's end rate at clip second t0 to 1 at t1."""
+    x = min(max((s - t0) / (t1 - t0), 0.0), 1.0)
+    return math.exp(math.log(SHOT['03']['rate0'] * 3600) * (1 - x * x * (3 - 2 * x)))
+
+
+def _int04(a, b, t0, t1, n=400):
+    h = (b - a) / n
+    return h / 3 * sum((1 if i in (0, n) else 4 if i % 2 else 2) * _rate04(a + i * h, t0, t1) for i in range(n + 1))
+
+
+_FIT04 = {}
+
+
+def fit04():
+    """04: (t0, t1) of the ease so that the Sun is `pre` deg (limb to limb) off Jupiter's limb at 0 s, touches it at
+    `contact` s and is gone at `gone` s; cached. Returns (t0, t1, e_start, e_first, e_second)."""
+    if not _FIT04:
+        c = SHOT['04']
+        e1, e2 = _elong_at_sep(R_SUN_DEG), _elong_at_sep(-R_SUN_DEG)
+        e0 = _elong_at_sep(c['pre'] + R_SUN_DEG)
+        pre, cover = (e0 - e1) / SUN_RATE * 3600, (e1 - e2) / SUN_RATE * 3600
+
+        def t1_for(t0):                                    # the ease end that puts first contact at `contact`
+            lo, hi = c['contact'], 40.0
+            for _ in range(40):
+                m = (lo + hi) / 2
+                lo, hi = (lo, m) if _int04(0.0, c['contact'], t0, m) > pre else (m, hi)
+            return (lo + hi) / 2
+        lo, hi = -8.0, c['contact'] - 0.5                  # then the ease start that puts second contact at `gone`
+        for _ in range(40):
+            m = (lo + hi) / 2
+            t1 = t1_for(m)
+            lo, hi = (lo, m) if _int04(c["contact"], c["gone"], m, t1) < cover else (m, hi)
+        t0 = (lo + hi) / 2
+        _FIT04.update(t0=t0, t1=t1_for(t0), e0=e0, e1=e1, e2=e2)
+    f = _FIT04
+    return f['t0'], f['t1'], f['e0'], f['e1'], f['e2']
+
+
+def lapse04(s):
+    """04: clip second → real seconds since first contact (< 0 before it)."""
+    t0, t1, *_ = fit04()
+    c = SHOT['04']
+    return _int04(c['contact'], s, t0, t1, n=max(40, int(abs(s - c['contact']) * 60)))
+
+
+def rate04(s):
+    """04: time rate at clip second s (real s per clip s)."""
+    t0, t1, *_ = fit04()
+    return _rate04(s, t0, t1)
+
+
+def lapse04_elong(s):
+    """04: the Sun's elongation (deg) at clip second s (it falls: the Sun slides into Jupiter's east limb)."""
+    return fit04()[3] - lapse04(s) / 3600 * SUN_RATE
 
 
 def lapse03_second(h):
@@ -236,6 +323,17 @@ if __name__ == '__main__':
                  f'({abs(lapse03_elong(0)) - lim - R_SUN_DEG:.1f}° clear of the limb), Jupiter {100 * lit_fraction(lapse03_elong(0)):.0f} % lit at both ends; '
                  f'sunset +{h_set:.1f} h at {lapse03_second(h_set):.2f} s, midnight (100 %) at {lapse03_second(c["hours"] / 2):.2f} s, '
                  f'sunrise +{h_rise:.1f} h at {lapse03_second(h_rise):.2f} s; Jupiter turns {c["hours"] / P_ROT_J_IO:.2f}×'))
+    c = SHOT['04']
+    t0, t1, e0, e1, e2 = fit04()
+    rt = lambda s: _rate04(s, t0, t1)
+    rows.append(('Shot 04 eclipse ingress', f'{c["dur"]:.0f} s; rate eased (log) from {SHOT["03"]["rate0"] * 3600:.0f}× at '
+                 f'{t0:+.2f} s to 1× at {t1:.2f} s: {rt(0):.0f}× at 0 s, {rt(c["contact"]):.0f}× at first contact '
+                 f'{c["contact"]:.1f} s, {rt(c["gone"]):.1f}× at second contact {c["gone"]:.1f} s; elongation '
+                 f'{e0:.2f}° → {e1:.2f}° → {e2:.2f}° → {lapse04_elong(c["dur"]):.2f}° at the end '
+                 f'({lapse04(0) / 60:+.1f} → {lapse04(c["dur"]):+.1f} s real from contact; stars and Sun '
+                 f'{rt(0) * SUN_RATE / 3600:.2f}°/s at 0 s); Sun {100 * sun_visible(e0):.0f} % → '
+                 f'{100 * sun_visible(lapse04_elong((c["contact"] + c["gone"]) / 2)):.0f} % at '
+                 f'{(c["contact"] + c["gone"]) / 2:.1f} s → {100 * sun_visible(e2):.0f} %'))
     for k, s in SHOT.items():
         if 'elong' not in s:
             continue

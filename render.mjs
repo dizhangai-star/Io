@@ -4,6 +4,7 @@
 //   Frames go to frames/<id>/ (deleted after encoding unless --keep). BLENDER env overrides the app path.
 //   --animatic: motion draft → out/<id>-animatic.mp4 (frames/<id>-animatic/), never touches out/<id>.mp4; default
 //   --engine workbench --pct 50. Free like previews: run it before any Cycles render.
+//   clips/<id>.js `freeze: S` (real renders only): frames from S on come from one EXR + keyed exposure (shot.py freeze).
 //   Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -22,6 +23,9 @@ fs.rmSync(dir, { recursive: true, force: true });
 
 const opt = (k) => A.opt(k) ?? (anim ? { engine: 'workbench', pct: '50' }[k] : undefined);
 const pass = ['samples', 'pct', 'look', 'engine'].flatMap((k) => (opt(k) ? [`--${k}`, opt(k)] : []));
+// clip.freeze (s): from that second on, frames are one EXR shown with each frame's exposure (blender/lib/shot.py freeze);
+// real renders only, the animatic renders every frame
+if (C.freeze && !anim) pass.push('--freeze', String(Math.round(C.freeze * config.fps) + 1));
 const t0 = Date.now();
 const log = execFileSync(BLENDER, ['-b', '--factory-startup', '-P', rel(`blender/shots/${C.shot}`), '--',
   '--frames', String(frames), '--samples', String(A.opt('samples', config.samples)), ...pass, '--out', dir],
@@ -33,7 +37,7 @@ console.log(log.split('\n').filter((l) => l.startsWith('SHOT')).join('\n'));
 fs.mkdirSync(rel('out'), { recursive: true });
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(config.fps), '-i', `${dir}/%04d.png`,
   '-vf', 'scale=1920:-2,pad=1920:1080:0:(oh-ih)/2:black', '-c:v', 'libx264', '-preset', 'slow', '-crf', String(config.crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', rel(`out/${name}.mp4`)]);
-if (!A.has('keep')) fs.rmSync(dir, { recursive: true, force: true });
+if (!A.has('keep')) fs.rmSync(dir, { recursive: true, force: true });   // (the freeze EXR goes with the frames)
 console.log(`${id}: ${frames} frames → out/${name}.mp4 in ${((Date.now() - t0) / 60000).toFixed(1)} min`);
 if (anim && config.soundtrack !== 'none') console.log('animatic: no sound yet (the kit mix writes out/<id>.mp4 only)');
 else if (!A.has('silent') && config.soundtrack !== 'none')

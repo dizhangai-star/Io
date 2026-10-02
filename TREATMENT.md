@@ -51,20 +51,33 @@ Jupiter is a wall with no edges, which is the megalophobia image (02).
   the human figure. **Don't take:** shots, the monolith, any spacecraft design (the lander is ours).
 - Jupiter is the real Jupiter (public-domain map, §7). Io's surface is procedural, coloured from Galileo mosaics.
 
-## 5. Clip list (≈ 60 s; final times after the whole-film animatic)
+## 5. Clip list (≈ 66 s with the 20 s 04; trim 01 / 03 or not at the whole-film animatic)
 | # | clip | dur | lens / camera | action | caption |
 |---|---|---:|---|---|---|
 | 01 | horizon | 9 s | 24 mm, eye 1.6 m, slow tilt −30° → +14° | prints and a lander foot in frost → black starry sky → Jupiter's lower limb enters, ends filling the upper third | IO · 木卫一 |
 | 02 | scale | 11 s | 135 mm, locked, 1 km from the ridge | night (Sun 13° down): astronaut (idle, leans back, raises an arm to Jupiter) + lander in silhouette on a ridge; Jupiter (93 % lit) wider than the frame behind (plume moved to 05, 2026-10-03) | JUPITER · 19° OF SKY / 它占据五分之一个天空 |
 | 03 | eternity | 12 s | 20 mm, locked, wide, the 01 site from 22 m back | 39 h in 12 s, eased (0.6 → 4 → 0.6 h/s): Sun just off the right limb (2 % crescent) → sets 3.1 s → night, full Jupiter 5.8 s (GRS on the meridian) → rises 8.5 s → nearing the left limb; stars wheel, the lander's shadow sweeps, Jupiter turns 3×; Jupiter still; counter +0 h → +39 h | IT NEVER RISES. IT NEVER SETS. / 它不升起，也不落下 |
-| 04 | eclipse | 14 s | 28 mm, locked, whole disc in frame, from a 40 m rise | real time compressed ~10×: crescent thins, Sun meets the limb, gone → black disc + red ring, ground dark, Loki-type lava glows, stars bloom | — (silence) |
+| 04 | eclipse | 20 s | 28 mm, locked, whole disc in frame, from a 40 m rise | time slows from 619× to real time (`physics.lapse04`): the Sun glides into the limb (4 s), is swallowed as a shrinking bead (4–9 s), gone → black, wait → eyes adjust: stars flood in round a starless disc, red ring, lava glows; still from 10.9 s | — (silence) |
 | 05 | forever | 10 s | 35 → 24 mm, rise + pull back 2 m → 3 km | astronaut → plain → the curve of Io under the black disc, a plume umbrella standing on the horizon; the Sun's diamond on the limb; fade to black | EVERY 42 HOURS. FOREVER. / 每 42 小时，永远 |
 | 06 | title | 4 s | card | IO · 永恒 on black | — |
 
-## 6. Beat sheet (key clip 04)
-0.0 crescent a hair-thin arc, Sun 2° from the limb, long shadows · 3.0 Sun touches the limb, the arc flares ·
-5.0 Sun gone: ring appears red-orange, ground drops 6 stops · 6.0–9.0 eyes adjust (exposure ramps up): stars
-bloom, vents and a lava lake glow on the plain, the ring's colour steadies · 9.0 one heartbeat · 9.0–14.0 hold.
+## 6. Beat sheet (key clip 04, 20 s, user 2026-10-03)
+| t (s) | rate | picture | exposure | sound |
+|---|---|---|---|---|
+| 0.0–4.0 slide in | 619× → 33× | the Sun 2° off the left limb, glare, gliding toward Jupiter and visibly slowing; no stars (day exposure); hairline limb; plain backlit, shadows toward the camera | −4.5 EV | suit hum fades, breath held |
+| 4.0 first contact | 33× | the Sun's edge touches the limb, the red arc on the left lights | — | drone cuts |
+| 4.0–9.0 swallowed | 33× → 1.4× | the Sun shrinks to a bead on the limb, ever slower; the glare closes; the ground dims through the penumbra (main Sun keyed by `sun_visible`) | −4.5 EV | near-silence |
+| 9.0 second contact | 1.4× | the Sun is gone: near black, a thread of dark red arc, a few lava points | −4.5 EV | silence |
+| 9.0–10.5 black | → 1× | nothing to see: the audience waits in the dark | −4.5 EV | silence |
+| 10.5–14.5 eyes adjust | 1× | exposure climbs: stars flood the whole frame except a 19.6° hole, the black disc shows by its missing stars; the ring steadies; lava lake and vents come up | −4.5 → ~0 EV (set on stills) | silence |
+| 14.5 | 1× | nothing moves | — | one heartbeat |
+| 14.5–20.0 hold | 1× | nothing moves → cut to 05 | held | silence |
+
+Time: log-rate eased (smoothstep) from 03's end rate (2160×) to 1×, fit by `physics.fit04` to the Sun 2° off the
+limb at 0 s, first contact 4.0 s, second contact 9.0 s (0–4 s covers 850 s real, 4–9 s the 43.5 s the disc takes to
+go). A constant ~10× can't reach contact (2° is 14 min real); a constant 280× would drift the stars 6° in the hold.
+Render: frames up to 9.5 s one by one (228 × ~9 s ≈ 35 min); from 9.5 s one linear EXR shown with each frame's
+exposure (`clip.freeze`, `shot.freeze`: stars drift ≤ 1 px, the lava is static), grain added at compile.
 
 ## 7. Assets (log every download in REFERENCES.md; files in the shared `../../_assets/`)
 - Jupiter global map: NASA/JPL Cassini PIA07782 (public domain); Hubble OPAL map if 135 mm needs more detail.
@@ -78,5 +91,5 @@ bloom, vents and a lava lake glow on the plain, the ring's colour steadies · 9.
 | 01 | suit hum, faint fan | breath, boot crunch felt not heard | — | — |
 | 02 | suit hum | slow breath; a suit creak as the arm rises | sub drone enters | — |
 | 03 | suit hum | breath sped up with time (ticks) | drone + slow pulse, one chord per Io "hour" | — |
-| 04 | hum fades | breath held | drone drops out at contact | **near-silence 5–9 s**, then one heartbeat |
+| 04 | hum fades (0–4 s) | breath held | drone cuts at first contact (4.0 s) | **near-silence 4–14.5 s**, one heartbeat at 14.5 s, silence to the cut |
 | 05 | hum returns | breath out | the chord returns with the Sun's diamond, resolves | before the title |
