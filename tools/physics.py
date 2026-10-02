@@ -11,7 +11,8 @@ A_IO = 421_700            # km, orbit semi-major axis
 R_J = 71_492              # km, equatorial
 R_J_POL = 66_854          # km, polar
 P_ROT_J = 9.925           # h, Jupiter System III rotation
-P_SYN = 42.456            # h, Io synodic period (Sun to Sun)
+P_ORB_IO = 42.4593        # h, Io sidereal orbit = its rotation (the stars' period in its sky)
+P_SYN = 42.4767           # h, Io synodic period (Sun to Sun): 1 / (1/P_ORB_IO − 1/Jupiter's 11.862 yr)
 V_IO = 17.334             # km/s, orbital speed
 AU_J = 5.203              # Jupiter's distance from the Sun (AU)
 S_EARTH = 1361.0          # W/m², solar constant at 1 AU
@@ -131,14 +132,56 @@ def contact_elong():
 
 E_SUN = S_EARTH / AU_J ** 2                                   # W/m², sunlight at Io
 
+P_ROT_J_IO = 1 / (1 / P_ROT_J - 1 / P_ORB_IO)               # h, Jupiter's rotation seen from Io (Io follows it round)
+SUN_RATE = 360 / P_SYN                                       # deg/h, the Sun across Io's sky (elongation falls)
+STAR_RATE = 360 / P_ORB_IO                                   # deg/h, the stars about Io's pole
+
+
 # Per-shot picks (directing), everything else derived. 01: day, the Sun 5° up in the east (out of frame left), Jupiter
 # 33 % lit (lit limb on the left, its lower limb lit as it enters), grazing light that carves the boot prints. 02 (user 2026-10-02: night): the Sun 13° below the horizon,
 # Jupiter 93 % lit, the ridge and the figures in silhouette against it; 04 still: the Sun 2.5° inside the limb (eclipse peak in the beat sheet).
 SHOT = {
     '01': dict(elong=70.0),
+    '03': dict(hours=39.0, dur=12.0, rate0=0.6, ramp_in=2.0, ramp_out=3.0),
     '02': dict(elong=150.0),
     '04': dict(elong=contact_elong() - 2.5),
 }
+
+
+def _S(x):
+    return x ** 3 - x ** 4 / 2                               # ∫ smoothstep from 0 to x; S(1) = ½
+
+
+def lapse03(s):
+    """03 time-lapse: clip second → hours since +0 h. The rate is `rate0` h/s at both ends, ramps up (smoothstep)
+    over `ramp_in` s, cruises, ramps down over the last `ramp_out` s; the cruise rate makes the total `hours`."""
+    c = SHOT['03']
+    D, a, b, r0 = c['dur'], c['ramp_in'], c['ramp_out'], c['rate0']
+    r1 = r0 + (c['hours'] - r0 * D) / (D - (a + b) / 2)
+    s = min(max(s, 0.0), D)
+    if s < a:
+        G = a * _S(s / a)
+    elif s > D - b:
+        G = D - (a + b) / 2 - b * _S((D - s) / b)
+    else:
+        G = a / 2 + s - a
+    return r0 * s + (r1 - r0) * G
+
+
+def lapse03_elong(h):
+    """03: the Sun's signed elongation (deg, east +) h hours in. Centred on midnight (180°, full Jupiter): it starts
+    west of Jupiter (just past the last eclipse) and ends east of it (before the next one, shot 04)."""
+    e = 180 + SHOT['03']['hours'] / 2 * SUN_RATE - h * SUN_RATE
+    return (e + 180) % 360 - 180
+
+
+def lapse03_second(h):
+    """Inverse of lapse03 (bisection)."""
+    lo, hi = 0.0, SHOT['03']['dur']
+    for _ in range(50):
+        m = (lo + hi) / 2
+        lo, hi = (m, hi) if lapse03(m) < h else (lo, m)
+    return lo
 
 
 if __name__ == '__main__':
@@ -157,8 +200,9 @@ if __name__ == '__main__':
                  f'of Io sunlight ({math.log2(e_sun / e_js):.1f} stops down); ≈ {e_js / (S_EARTH * 2.0e-6):.0f}× full moonlight on Earth'))
     rows.append(('Eclipse', f'every {P_SYN:.2f} h; shadow {2 * R_J:,} km wide / {V_IO} km/s = {2 * R_J / V_IO / 3600:.2f} h'))
     rows.append(('Sun motion in Io sky', f'{360 / P_SYN:.2f}°/h (stars likewise); Jupiter: 0°/h'))
-    rows.append(('Jupiter rotation', f'{P_ROT_J} h; GRS {GRS_W:,} km = {deg(GRS_W / d_sub):.1f}° across, crosses the disc '
-                 f'in ≈ {P_ROT_J / 2:.1f} h'))
+    rows.append(('Jupiter rotation seen from Io', f'{P_ROT_J_IO:.2f} h (Io moves with it: {P_ROT_J} h inertial); '
+                 f'GRS crosses the disc in ≈ {P_ROT_J_IO / 2:.1f} h; stars {STAR_RATE:.2f}°/h'))
+    rows.append(('Jupiter rotation', f'{P_ROT_J} h inertial; GRS {GRS_W:,} km = {deg(GRS_W / d_sub):.1f}° across'))
     rows.append(('Surface gravity', f'{g_at(0):.3f} m/s² = {g_at(0) / 9.81:.3f} g'))
     for h in (300, 400):
         v, t = plume(h)
@@ -182,7 +226,19 @@ if __name__ == '__main__':
         rows.append((f'Sun at elongation {E:.1f}° (east)', f'el {se:+.1f}° az {sa:+.1f}°; Jupiter {100 * lit_fraction(E):.0f} % lit; '
                      f'sun on flat ground {max(0, E_SUN * math.sin(math.radians(se))):.2f} W/m², '
                      f'Jupiter-shine facing it {jupiter_shine(E):.3f} W/m²'))
+    c = SHOT['03']
+    h_set = (lapse03_elong(0) + 90) / SUN_RATE
+    h_rise = (lapse03_elong(0) + 360 - 90) / SUN_RATE
+    lim = contact_elong() - R_SUN_DEG
+    r_peak = max(lapse03(s + 0.01) - lapse03(s) for s in [i / 10 for i in range(120)]) * 100
+    rows.append(('Shot 03 time-lapse', f'{c["hours"]:.0f} h in {c["dur"]:.0f} s, {c["rate0"]} h/s at the ends, peak {r_peak:.2f} h/s; '
+                 f'Sun from elongation {lapse03_elong(0):+.2f}° to {lapse03_elong(c["hours"]):+.2f}° '
+                 f'({abs(lapse03_elong(0)) - lim - R_SUN_DEG:.1f}° clear of the limb), Jupiter {100 * lit_fraction(lapse03_elong(0)):.0f} % lit at both ends; '
+                 f'sunset +{h_set:.1f} h at {lapse03_second(h_set):.2f} s, midnight (100 %) at {lapse03_second(c["hours"] / 2):.2f} s, '
+                 f'sunrise +{h_rise:.1f} h at {lapse03_second(h_rise):.2f} s; Jupiter turns {c["hours"] / P_ROT_J_IO:.2f}×'))
     for k, s in SHOT.items():
+        if 'elong' not in s:
+            continue
         se, sa = alt_az(sun_local(s['elong']))
         rows.append((f'Shot {k}', f'elongation {s["elong"]:.2f}°: Sun el {se:.2f}° az {sa:+.1f}°, '
                      f'Jupiter {100 * lit_fraction(s["elong"]):.0f} % lit'))

@@ -129,3 +129,38 @@ def _ring(sc, jup, centre, rot, R, flat, strength, width, sun_elong):
     g.output(g.o(add, 0))
     ob.data.materials.append(m)
     return ob
+
+
+def io_shadow(sc, sun, jup, ground, sink=30.0):
+    """Jupiter gets its own Sun, shadowed by Io alone (light linking), so Io's shadow transit is exact and the
+    real-size terrain near the camera never shadows the scaled-down Jupiter (it did, as a huge saucer, at full phase).
+
+    Io at Jupiter's scale: everything far is scaled toward the camera by k = DIST / true distance, so Io is a sphere
+    of R_IO·k (4.3 km) whose top is the ground under the camera (sunk `sink` m so it never shadows the real ground),
+    and its shadow on Jupiter falls where the Sun–Io line meets it, at the true angular size (≈ 0.4° umbra; the
+    lamp's 0.1° Sun gives the scaled penumbra). It shows near full Jupiter (elongation 180 ± 10°) for ≈ 2.3 h.
+    The main `sun` then lights everything but Jupiter. Returns (jupiter's sun, the Io sphere)."""
+    k = DIST / (P.jupiter_local()[1] * 1000.0)
+    r = P.R_IO * 1000.0 * k
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=r,
+                                         location=Vector(ground) - Vector((0.0, 0.0, r + sink)))
+    io = bpy.context.object
+    io.name = 'IoScaled'
+    for kk in ('visible_camera', 'visible_diffuse', 'visible_glossy', 'visible_transmission', 'visible_volume_scatter'):
+        setattr(io, kk, False)
+
+    def coll(name, ob, state):
+        c = bpy.data.collections.new(name)
+        c.objects.link(ob)
+        c.collection_objects[0].light_linking.link_state = state
+        return c
+
+    sun.light_linking.receiver_collection = coll('NotJupiter', jup, 'EXCLUDE')
+    sj = bpy.data.objects.new('SunJupiter', sun.data)
+    sc.collection.objects.link(sj)
+    sj.rotation_mode = sun.rotation_mode
+    sj.rotation_euler, sj.rotation_quaternion = sun.rotation_euler, sun.rotation_quaternion
+    sj.light_linking.receiver_collection = coll('OnlyJupiter', jup, 'INCLUDE')
+    sj.light_linking.blocker_collection = coll('IoShadow', io, 'INCLUDE')
+    print(f'NOTE jupiter: Io at scale k {k:.5f}, radius {r / 1000:.2f} km; own Sun for Jupiter (light linking)')
+    return sj, io
