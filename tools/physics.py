@@ -3,7 +3,9 @@
 Conventions: km, s, degrees unless named. Io is tidally locked: Jupiter hangs at a fixed point in its sky; the Sun goes
 round once per synodic day (42.46 h). Jupiter's phase seen from Io = the Sun's angle from Jupiter in Io's sky.
 """
+import json
 import math
+import sys
 
 GM_IO = 5959.9            # km³/s²
 R_IO = 1821.6             # km (mean)
@@ -361,7 +363,16 @@ def lapse03_second(h):
     return lo
 
 
-if __name__ == '__main__':
+def card():
+    """The numbers on the 06 title card (tools/card.mjs reads `python3 tools/physics.py --card`)."""
+    dj = 2 * deg(math.asin(R_J / (A_IO - R_IO)))
+    return {'jupiter_deg': round(dj, 1), 'moons': round(dj / 0.52), 'moves_deg_h': 0,
+            'eclipse_every_h': round(P_SYN, 2), 'eclipse_h': round(2 * R_J / V_IO / 3600, 2)}
+
+
+if __name__ == '__main__' and '--card' in sys.argv:
+    print(json.dumps(card()))
+elif __name__ == '__main__':
     rows = []
     d_sub = A_IO - R_IO
     dj = 2 * deg(math.asin(R_J / d_sub))

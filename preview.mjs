@@ -32,6 +32,12 @@ if (id === 'film') {
 }
 
 const C = loadClip(id);
+if (C.card) {                                         // title card (tools/card.mjs): stills from Chrome, no Blender
+  const times = (A.opt('every') ? Array.from({ length: Math.floor(C.duration / +A.opt('every')) + 1 }, (_, k) => k * +A.opt('every')) : ts.map(Number));
+  execFileSync('node', [rel('tools/card.mjs'), id, '--stills', times.join(','), ...(A.opt('x') ? ['--variant', A.opt('x').replace('variant=', '')] : [])], { stdio: 'inherit' });
+  grid(times.map((t) => rel(`frames/${id}-t${t.toFixed(2)}.png`)), rel(`frames/${id}-strip.png`));
+  process.exit(0);
+}
 if (!C.shot) { console.error(`clips/${id}.js has no \`shot\``); process.exit(1); }
 const every = A.opt('every');
 const times = every ? Array.from({ length: Math.floor(C.duration / +every) + 1 }, (_, k) => k * +every) : ts.map(Number);
