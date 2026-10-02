@@ -26,6 +26,7 @@ const pass = ['samples', 'pct', 'look', 'engine'].flatMap((k) => (opt(k) ? [`--$
 // clip.freeze (s): from that second on, frames are one EXR shown with each frame's exposure (blender/lib/shot.py freeze);
 // real renders only, the animatic renders every frame
 if (C.freeze && !anim) pass.push('--freeze', String(Math.round(C.freeze * config.fps) + 1));
+if (anim) pass.push('--draft', '1');                  // EEVEE: 16 TAA samples, no motion blur (shot.engine)
 const t0 = Date.now();
 const log = execFileSync(BLENDER, ['-b', '--factory-startup', '-P', rel(`blender/shots/${C.shot}`), '--',
   '--frames', String(frames), '--samples', String(A.opt('samples', config.samples)), ...pass, '--out', dir],

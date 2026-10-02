@@ -99,13 +99,48 @@ at day exposure), Sun-side arc from 3° out flaring while the Sun goes, keeps 6 
 each frame's keyed exposure (478 frames in 5 s; frozen = rendered at PSNR 51 dB in a test). Real renders only.
 User review 2026-10-03: locked as is (flat sunlit plain at 0–4 s and night EV 0 accepted). **Next: shot 05 (forever:
 rise + pull back, plume umbrella, the Sun's diamond on the limb) in a new session.**
+**Sprint 3 · shot 05 locked (user 2026-10-03).** User picks: rise to the height that looks
+best → **100 km** (horizon dip 18.6°, bulges ≈ 140 px at 17 mm; 3 km only ~20 px); plume lights with the diamond;
+start 5 m from the astronaut (knee-cut); reference points for the dark climb; far ground from real imagery.
+`physics.SHOT['05']` + `egress05 / lapse05 / rise05 / lens05 / sun_offset_dir / dip / umbrella`: the cut skips 137 min
+of the eclipse; real time to third contact at 5.0 s (Sun el 14.8°, az +10°, west limb), eased to 21× over 2 s, whole
+Sun out at 8.0 s; camera holds 1 s, rises log-eased 0.8 m → 100 km by 9 s (5 m at 3 s, 283 m at 5 s, 16 km at 7 s),
+29 → 17 mm, disc top held 1° under the frame top, pull-back due north (site 3.8° → 18° below). New `lib/globe.py`:
+exact-sphere cap 4–1500 km (`cap`; io_world.terrain's parabola is 2.7 km low at 600 km), `massifs` (scarps over
+debris aprons), `far_layer` (km tone from `textures/src/io_far_1km.png` = `tools/maps.py far`: the USGS mosaic at
+48° N, lon −90°, a stand-in for the smeared polar site, as map / its mean; noise fallback; Prometheus-type deposit
+ring), `egress` (per-point Sun fraction: Jupiter's parallax makes the shadow's 753 km penumbra sweep the ground west →
+east at 17 km/s × rate), `hotspots`, `plume` (umbrella volume: shell on z = 1 − ρ², 100 km apex, ring 143 km, at
+450 km az −6° so the light reaches it ≈ 2 s after the diamond; bluish forward scatter, colour × egress).
+`s05_forever.py`: astronaut (idle) at the end of 01's out-trail, helmet lamps (spots on 'Lamparas'), **the lander's
+floodlight on** (from behind the suit was a starless hole), 84 hot cracks 15 m–5 km (bands, size ∝ distance) + 15 hot
+paterae 15–650 km; light: near Sun keyed by the site's fraction (near ground, suit, lander), far Sun full with the
+per-point fraction (globe, plume), Jupiter's own Sun; Jupiter + ring follow the camera; ground/plume bounce off
+(seen from the scaled Jupiter the real-size sunlit ground lit its night side); stars camera-only and their Voronoi
+lattice turned (`sky.stars` `camera_only`, `orient`: default off, 03/04 unchanged); the Sun drawn as a ≥ 1.5 px bead
+in front of the limb, strength = `sun_visible` × radiance × (true/drawn)² (the true 1-px disc's sliver was missed by
+adaptive sampling: no diamond at 6 s). Exposure EV 0 → −4.5 over 5.3–8.5 s. Animatic (EEVEE draft, 1.0 s/frame)
+`out/05-forever-animatic.mp4`; Cycles check `frames/05-forever-check.png` (0.5 / 3 / 6 / 9.5 s, 50 %, ≈ 5 s/still +
+build). EEVEE shows the plume green (volume artefact; Cycles bluish white). User review 2026-10-03: locked as is
+(lander floodlight accepted). **Next: shot 06 (title card) in a new session, then Sprint 4.**
+**Animatic speed (2026-10-03, side-chat list checked):** `render.mjs --animatic` passes `--draft` → `shot.engine`
+(EEVEE: TAA 16, no motion blur). Measured on 05 (11 frames): TAA 16 and volume tiles 8/32 changed nothing (4.2 s/frame);
+the cost was EEVEE redrawing the helmet lamps' spot shadow maps of the 1.1 M-vertex ground every frame: lamp shadows
+off in draft → 1.0 s/frame. Sprint 4 batch-renderer checklist (not done): resume as opt-in `--resume` (default
+re-render; a default resume keeps stale frames after a shot edit; delete 0-byte placeholders first; test 04's freeze
+EXR); `use_persistent_data` (likely the biggest Cycles win: static 1 M-vertex grounds re-synced per frame; check keyed
+world/material values, light linking, 04's freeze post scene); bounces (`rig.render_settings` keeps eyes' glass values
+16/16, caustics on: open Io scenes end paths early, expect < 10 %, A/B on the heaviest shot); `adaptive_threshold`
+stays 0.01 for 03/04/05 (1-px stars, eclipse EV lift); **check 04's shrinking bead (4–9 s) for the same sub-pixel
+sampling flicker** as 05's diamond. Every speed change: 1 full-res still per shot, A/B PSNR + s/frame. Skill notes
+(EEVEE draft, bounce defaults, opt-in resume, A/B method) after those measurements.
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
-3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 2026-10-03.
+3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03.
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
@@ -120,6 +155,9 @@ rise + pull back, plume umbrella, the Sun's diamond on the limb) in a new sessio
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
 - 02 has no plume; the plume umbrella is in 05 (user 2026-10-03, geometry in State).
+- 05 locked (user 2026-10-03): rise to 100 km, 29 → 17 mm; start 5 m from the astronaut; diamond 5.0 s, whole Sun
+  8.0 s, caption 5.0–9.4; plume lights after the diamond; vents for the dark climb; far ground = USGS mosaic stand-in
+  (48° N) as relative colour over the polar palette; lander floodlight on in the eclipse; EEVEE animatic.
 - 03: 39 h, eclipse to eclipse (no eclipse inside), eased rate (user 2026-10-03); EEVEE animatic (light is the beat).
 - 04: 20 s, time eased 619× → real time (Sun in at 4 s, gone at 9 s, black to 10.5, eyes adjust to 14.5, heartbeat,
   hold); still tail rendered as one EXR + keyed exposure (user 2026-10-03); EEVEE animatic.
@@ -139,6 +177,14 @@ rise + pull back, plume umbrella, the Sun's diamond on the limb) in a new sessio
   (04 ramps it up after second contact, "eyes adjust").
 
 ## Notes / lessons
+- A true-size Sun (0.1° ≈ 1 px) as a sliver is sub-pixel: adaptive sampling stops on a black pixel before a sample
+  hits it. Draw the camera Sun ≥ 1.5 px, strength scaled to keep flux, visible fraction keyed from physics (05).
+- Real-size ground + scaled-down Jupiter: the ground's bounce light, seen from Jupiter's scaled place, lights its
+  night side. Turn off diffuse/glossy visibility of the ground (05). Parallax over hundreds of km is real: Jupiter
+  shifts deg(Δ/d), so the eclipse ends at different moments across the ground (`globe.egress`).
+- EEVEE: a shadowed spot light redraws its shadow maps of every mesh in range each frame (05: 3.5 s/frame for two
+  helmet lamps over a 1.1 M-vertex ground); time an EEVEE draft by elimination over ≥ 10 frames (3 stills mostly
+  measure the shader compile).
 - EEVEE draft of a Cycles scene: a negative view exposure drops the sub-pixel Sun disc (key the exposure in the
   compositor for EEVEE); Dithered drops a transparent+emission shell (ring material is BLENDED). In skill REALISM.md.
 - Scaled-far scenes: near real-size occluders shadow the scaled Jupiter whenever the Sun is opposite it. Fix with

@@ -5,6 +5,10 @@
     python3 tools/maps.py io         our site cut out of the USGS Io colour mosaic, reprojected to the film's local
                                      frame (X west, Y south, 1 km/px, site at the centre) →
                                      blender/textures/src/io_site_1km.png, + a palette of the site's colours
+    python3 tools/maps.py far        a stand-in for 05's far ground (user 2026-10-03): the site's own mosaic is smeared
+                                     poleward of ~60°, so a well-imaged northern region (FAR_CENTRE) is reprojected
+                                     the same way, 2048 km across → blender/textures/src/io_far_1km.png, + its mean
+                                     linear colour (the constant in blender/lib/globe.py)
 
 Blender never reads the 100–200 MB source files pixel by pixel: it loads the map as a texture and uses these numbers.
 """
@@ -109,5 +113,42 @@ def io(size=1024, km_px=1.0):
         print(f'  {share[j] * 100:5.1f} %  linear {tuple(cen[j].round(3))}')
 
 
+FAR_CENTRE = (48.0, 0.25)       # latitude, and position across the mosaic (0..1 from its west edge): brown plains,
+                                 # dark paterae, white SO2 patches, Galileo coverage (picked on the preview)
+
+
+def far(size=2048, km_px=1.0):
+    im = Image.open(IO)
+    lon0, lat0, dlon, dlat = _georef(im)
+    a = np.asarray(im.convert('RGB')).astype(np.float32) / 255
+    lat_c, u = FAR_CENTRE
+    lon_c = lon0 + u * a.shape[1] * dlon
+    la, lo = math.radians(lat_c), math.radians(lon_c)
+    s = np.array([math.cos(la) * math.cos(lo), math.cos(la) * math.sin(lo), math.sin(la)])
+    north = np.array([-math.sin(la) * math.cos(lo), -math.sin(la) * math.sin(lo), math.cos(la)])
+    east = np.array([-math.sin(lo), math.cos(lo), 0.0])
+    R = P.R_IO
+    half = size * km_px / 2
+    xs = (np.arange(size) + 0.5) * km_px - half
+    ys = half - (np.arange(size) + 0.5) * km_px
+    X, Y = np.meshgrid(xs, ys)
+    rho = np.hypot(X, Y) + 1e-9
+    phi = rho / R
+    d = (-X[..., None] * east - Y[..., None] * north) / rho[..., None]
+    p = np.cos(phi)[..., None] * s + np.sin(phi)[..., None] * d
+    lat = np.degrees(np.arcsin(np.clip(p[..., 2], -1, 1)))
+    lon = np.degrees(np.arctan2(p[..., 1], p[..., 0]))
+    col = np.mod((lon - lon0) / dlon, a.shape[1])
+    row = (lat - lat0) / dlat
+    out = np.stack([ndimage.map_coordinates(a[..., c], [row - 0.5, col - 0.5], order=1, mode='nearest')
+                    for c in range(3)], -1)
+    dst = os.path.join(FILM, 'blender/textures/src/io_far_1km.png')
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8)).save(dst)
+    L = lin(out.reshape(-1, 3).astype(np.float64))
+    print(f'far stand-in: centre {lat_c:.1f}° N, lon {lon_c:.1f}° → {os.path.relpath(dst, FILM)} ({size} km, {km_px} km/px)')
+    print(f'mean linear {tuple(L.mean(0).round(4))}')
+
+
 if __name__ == '__main__':
-    {'jupiter': jupiter, 'io': io}[sys.argv[1]]()
+    {'jupiter': jupiter, 'io': io, 'far': far}[sys.argv[1]]()
