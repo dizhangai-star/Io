@@ -48,7 +48,7 @@ EV_NIGHT = float(A.opt('night', 0.0))
 ADAPT = (C['contact'] + 0.3, C['full'] + 0.5)          # the eyes adjust back to daylight (s)
 u, D_J, r_eq, r_pol, pole = P.jupiter_local()
 J_EL = P.alt_az(u)[0]
-TOP = J_EL + r_pol + 1.0                               # frame top: the disc's top + 1°
+TOP = J_EL + r_pol + 0.7                               # frame top: the disc's top + 0.7° (as 04: ring match)
 ASPECT = shot.RES[1] / shot.RES[0]
 assert abs(A.frames / FPS - C['dur']) < 1e-6 or A.opt('stills'), f'clip is {A.frames / FPS} s, physics.SHOT 05 says {C["dur"]} s'
 

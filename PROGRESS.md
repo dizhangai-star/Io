@@ -145,6 +145,21 @@ world/material values, light linking, 04's freeze post scene); bounces (`rig.ren
 stays 0.01 for 03/04/05 (1-px stars, eclipse EV lift); **check 04's shrinking bead (4–9 s) for the same sub-pixel
 sampling flicker** as 05's diamond. Every speed change: 1 full-res still per shot, A/B PSNR + s/frame. Skill notes
 (EEVEE draft, bounce defaults, opt-in resume, A/B method) after those measurements.
+**Sprint 4.01 · whole-film animatic (2026-10-03).** `out/io-animatic.mp4`, **65.5 s** (strip
+`frames/io-animatic-strip.png`). Joints (user 2026-10-03, after a /cinematic-video-prompt pass): hard cuts everywhere
+(01→02 scale cut 24 → 135 mm, day → night; 02→03 cut, the counter starts; 03→04 cut on the slowing time, Sun left of
+Jupiter in both), **one dissolve, 04 → 05, 1.5 s on the ring**; head = 1.0 s black (sound first) + 0.5 s fade up;
+05's last 1.0 s fades to black, 06 opens on its own black. Ring match: 05 now opens at 04's framing (`SHOT['05']`
+lens 29 → **28** mm, disc top 1° → **0.7°** under the frame top, as s04): ring centre (960, 261) and 522 vs 523 px in
+both (was 17 px and 3 % off). Film-local `compile.mjs` (replaces the kit wrapper; JOINTS / HEAD / FADE_OUT at the top;
+dissolve overlaps real frames: film = Σ clips − 1.5 + 1.0) + `tools/overlay.mjs` (captions + 03 counter in 巨物's
+cg-lab type on a transparent canvas → qtrle .mov per clip, overlaid before the joints; counter from `physics.lapse03`
+per frame, `+00.0 h` → `+39.0 h`, top-left of the picture). Clip starts → `out/timeline.json` (git-ignored; rerun
+`node compile.mjs --animatic`): 01 @ 1.0 · 02 @ 10.0 · 03 @ 21.0 · 04 @ 33.0 · 05 @ 51.5 · 06 @ 61.5, end 65.5.
+Animatics refreshed in EEVEE (13.5 min for all four): 05 50 % 4.3 min, 04 50 % 4.8 min (dense stars now), 01 50 %
+1.8 min, 02 100 % 2.6 min (14-px astronaut); 03 and 06 unchanged. EEVEE draws 05's plume green (Cycles bluish).
+Trims (66 → 60 s target) not decided: judge in motion. **Next: user reviews the animatic → 4.02 (score + suit foley
+cut to `out/timeline.json`) in a new session.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -152,7 +167,7 @@ sampling flicker** as 05's diamond. Every speed change: 1 full-res still per sho
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03; 06 ✅ (title card, no Blender).
-4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
+4. 4.01 ✅ whole-film animatic + joints + caption/counter overlay in compile (2026-10-03); 4.02 score + suit foley cut to it.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
 ## Decisions (locked)
@@ -166,7 +181,7 @@ sampling flicker** as 05's diamond. Every speed change: 1 full-res still per sho
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
 - 02 has no plume; the plume umbrella is in 05 (user 2026-10-03, geometry in State).
-- 05 locked (user 2026-10-03): rise to 100 km, 29 → 17 mm; start 5 m from the astronaut; diamond 5.0 s, whole Sun
+- 05 locked (user 2026-10-03): rise to 100 km, 28 → 17 mm (was 29; 4.01 ring match with 04); start 5 m from the astronaut; diamond 5.0 s, whole Sun
   8.0 s, caption 5.0–9.4; plume lights after the diamond; vents for the dark climb; far ground = USGS mosaic stand-in
   (48° N) as relative colour over the polar palette; lander floodlight on in the eclipse; EEVEE animatic.
 - 06 locked (user 2026-10-03): title card drawn by `tools/card.mjs` (Chrome canvas, 巨物's type), IO / 永 恒 with a
@@ -184,8 +199,6 @@ sampling flicker** as 05's diamond. Every speed change: 1 full-res still per sho
 
 ## Open technical checks
 - Eclipse ring colour/width (Cassini / New Horizons eclipse images) and how it brightens near contact.
-- Caption + counter overlay route for Blender frames (kit compile has no overlay for style `blender`; film-local
-  ffmpeg drawtext/ASS pass or a canvas overlay, decide in Sprint 4).
 - Exposure: AgX can't hold sunlit sulfur and a 6-stop-darker eclipse in one exposure: key `film exposure` per shot
   (04 ramps it up after second contact, "eyes adjust").
 

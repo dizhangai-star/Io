@@ -14,7 +14,8 @@ node preview.mjs <id> 1 5 9 --pct 50           # Cycles stills → frames/<id>-s
 node preview.mjs <id> --every 2 --engine workbench
 node render.mjs <id> --animatic                # Workbench motion draft → out/<id>-animatic.mp4 (free)
 node render.mjs <id>                           # full Cycles clip → out/<id>.mp4   ONLY on the user's explicit yes
-node compile.mjs                               # every NN-*.js clip → out/io.mp4
+node compile.mjs                               # every NN-*.js clip → out/io.mp4 (joints, captions, 03 counter)
+node compile.mjs --animatic                    # every out/<id>-animatic.mp4 → out/io-animatic.mp4 + out/timeline.json
 node ../../_kit/bin/check.mjs                  # final QC
 node ../../_kit/bin/srt.mjs                    # subtitles → out/io.srt
 ```
