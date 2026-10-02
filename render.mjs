@@ -5,6 +5,7 @@
 //   --animatic: motion draft → out/<id>-animatic.mp4 (frames/<id>-animatic/), never touches out/<id>.mp4; default
 //   --engine workbench --pct 50. Free like previews: run it before any Cycles render.
 //   clips/<id>.js `freeze: S` (real renders only): frames from S on come from one EXR + keyed exposure (shot.py freeze).
+//   clips/<id>.js `card: {…}` instead of `shot`: a type-only card drawn by tools/card.mjs (headless Chrome), no Blender.
 //   Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -16,6 +17,10 @@ const anim = A.has('animatic');
 const [id] = A.positional();
 if (!id) { console.error('usage: node render.mjs <id> [--silent] [--samples N] [--pct P] [--look L] [--engine E] [--animatic] [--keep]'); process.exit(1); }
 const C = loadClip(id);
+if (C.card) {                                         // title card: type on black, the animatic is the real thing
+  execFileSync('node', [rel('tools/card.mjs'), id, '--out', rel(`out/${anim ? `${id}-animatic` : id}.mp4`)], { stdio: 'inherit' });
+  process.exit(0);
+}
 if (!C.shot) { console.error(`clips/${id}.js has no \`shot\` (blender/shots/<file>.py)`); process.exit(1); }
 const name = anim ? `${id}-animatic` : id;
 const frames = Math.round(C.duration * config.fps), dir = rel(`frames/${name}`);

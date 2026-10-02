@@ -123,6 +123,17 @@ adaptive sampling: no diamond at 6 s). Exposure EV 0 → −4.5 over 5.3–8.5 s
 `out/05-forever-animatic.mp4`; Cycles check `frames/05-forever-check.png` (0.5 / 3 / 6 / 9.5 s, 50 %, ≈ 5 s/still +
 build). EEVEE shows the plume green (volume artefact; Cycles bluish white). User review 2026-10-03: locked as is
 (lander floodlight accepted). **Next: shot 06 (title card) in a new session, then Sprint 4.**
+**Sprint 3 · shot 06 (title card) locked (user 2026-10-03).** No Blender: the card is all type, so
+`tools/card.mjs` draws it in headless Chrome (kit puppeteer-core, Google Fonts) with 巨物's title type and colours on its
+640×360 grid ×3: Cinzel 600 tracked caps, 中文 Noto Serif SC spaced, a two-line JetBrains Mono readout (ZH over EN)
+filled from `python3 tools/physics.py --card` (Jupiter 19.6°, 38× the Moon, moves 0°/h, eclipse every 42.48 h, 2.29 h
+of dark). Clip `card: { variant }` replaces `shot`; `render.mjs` / `preview.mjs` route it to card.mjs (1 s for 96
+frames, full 1920×1080 since it's black; the animatic is the real thing). Timing: black 0–0.4 s, title in 0.4–1.2,
+readout 1.1–1.9, both out 2.7–3.5, black to 4.0 (05's fade to black is at compile). User 2026-10-03: IO / 永 恒 kept; most viewers don't know Io, so a small kicker above it: 木 卫 一 over A MOON OF
+JUPITER (Noto Serif SC 7 + Cinzel 5.5, dim, fades with the title). Variants: `io` (IO / 永 恒) and
+`apeiro` (APEIROPHOBIA / 永 恒 恐 惧 症, as MEGALOPHOBIA / 巨物恐惧症). Strip `frames/06-title-strip.png`, animatic
+`out/06-title-animatic.mp4`. The same canvas route can carry the captions + 03 counter in Sprint 4.
+**Sprint 3 done. Next: Sprint 4 (whole-film animatic, score + foley cut to it, caption + counter overlay) in a new session.**
 **Animatic speed (2026-10-03, side-chat list checked):** `render.mjs --animatic` passes `--draft` → `shot.engine`
 (EEVEE: TAA 16, no motion blur). Measured on 05 (11 frames): TAA 16 and volume tiles 8/32 changed nothing (4.2 s/frame);
 the cost was EEVEE redrawing the helmet lamps' spot shadow maps of the 1.1 M-vertex ground every frame: lamp shadows
@@ -140,7 +151,7 @@ sampling flicker** as 05's diamond. Every speed change: 1 full-res still per sho
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
-3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03.
+3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03; 06 ✅ (title card, no Blender).
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
@@ -158,6 +169,8 @@ sampling flicker** as 05's diamond. Every speed change: 1 full-res still per sho
 - 05 locked (user 2026-10-03): rise to 100 km, 29 → 17 mm; start 5 m from the astronaut; diamond 5.0 s, whole Sun
   8.0 s, caption 5.0–9.4; plume lights after the diamond; vents for the dark climb; far ground = USGS mosaic stand-in
   (48° N) as relative colour over the polar palette; lander floodlight on in the eclipse; EEVEE animatic.
+- 06 locked (user 2026-10-03): title card drawn by `tools/card.mjs` (Chrome canvas, 巨物's type), IO / 永 恒 with a
+  木 卫 一 / A MOON OF JUPITER kicker above, physics readout from `physics.py --card`; 4 s, black head and tail.
 - 03: 39 h, eclipse to eclipse (no eclipse inside), eased rate (user 2026-10-03); EEVEE animatic (light is the beat).
 - 04: 20 s, time eased 619× → real time (Sun in at 4 s, gone at 9 s, black to 10.5, eyes adjust to 14.5, heartbeat,
   hold); still tail rendered as one EXR + keyed exposure (user 2026-10-03); EEVEE animatic.
