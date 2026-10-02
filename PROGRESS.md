@@ -1,6 +1,6 @@
 # Io · 永恒: progress
 
-## State (2026-10-02)
+## State (2026-10-03)
 **Sprint 1 (look spike) done 2026-10-02.** Stills in `frames/spike/` (sheet.png):
 02 day (Sun 2.6° up, Jupiter 41 % lit, sunlit ridge), 02 night (Sun −13°, Jupiter 93 % lit, ridge + figures in
 silhouette), 04 eclipse peak (28 mm, black disc + red ring, lava lake, stars). Libs: `blender/lib/io_world.py`
@@ -48,6 +48,19 @@ default off; Workbench now resets the film exposure to 0).
 User review 2026-10-03: end pitch +14°, prints shallower (were 1.5 cm, read as dark slots), left massif removed:
 all done (strip + animatic refreshed); **01 locked**. **Next: shot 02 (animate the spike: astronaut idle + look-up,
 plume rising) in a new session.**
+**Sprint 3 · shot 02 locked (user 2026-10-03).** Plume dropped from 02 (user 2026-10-03): with the crest at 8° only
+8–13.8° of sky is in frame, and any plume whose top lands there is wider than the frame (100 km Prometheus-type at
+330 km spans 43°), its 22-min flight moves ~7 km in 11 s, and Jupiter covers the left side so it would be haze on the
+disc; **the plume moves to 05** (24 mm from 3 km, sunlit canopy above Io's night shadow, which ends 100–250 km up).
+`s02_scale.py` animated: EMU + Breathing Idle on the crest (heading 125°, facing right and away), real `lander.build`
+6 m behind the crest edge. At 1 km the suit is ≈ 14 px tall (7.2 px/m), so a lean alone moves the helmet ~1.5 px: the
+look-up = chest lean back 15° + the near (right) arm raised 115° to point at Jupiter (retarget `extra` on `chest` and
+`upper_arm.R`): idle 0–2.5 s, raise 2.5–4.5 s, hold, lower 8.0–9.8 s, lean held. Animatic (Workbench, 100 %,
+0.3 s/frame) `out/02-scale-animatic.mp4` + review crop `out/02-scale-animatic-crop.mp4` (full frame over a 4×
+figure crop; mp4s are padded to 1080, crop from the PNGs); Cycles check `frames/02-scale-check.png` (1 / 5 / 10.5 s,
+full res, 64 spp, 3 stills in 56 s ≈ 7 s/frame + build): the raised arm reads as a 1-px line against the disc.
+User review 2026-10-03: arm raise reads, 02 = night only (the `--elong 80` day variant is a spike option, not a
+second shot); **02 locked**. **Next: shot 03 (42 h time-lapse) in a new session.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -68,6 +81,7 @@ plume rising) in a new session.**
 - Ground: the site's real polar orange-brown (USGS mosaic) + scattered frost/sulfur patches (user 2026-10-02).
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
+- 02 has no plume; the plume umbrella is in 05 (user 2026-10-03, geometry in State).
 - Scale cues: distant astronaut (ready-made rigged + Mixamo), code-built lander, boot prints.
 - Astronaut = Blend Swap #12622 NASA EMU (user 2026-10-02), gold visor down (the helmet is empty). The helmet is fixed
   to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer

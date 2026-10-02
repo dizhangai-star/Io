@@ -15,8 +15,7 @@ Episode 2 of the planet series (恐惧 / Fear), after *Megalophobia · 巨物* (
 On Io, Jupiter never comes for you. It is already there, a fifth of the sky, and it will be there forever.
 - **Hook (01):** ground level, boot prints in sulfur frost; tilt up into a black sky with stars by day, and the
   lower limb of something enormous enters the frame and doesn't stop.
-- **Scale (02):** long lens: a tiny astronaut and lander on a ridge, mountains, a 300 km plume umbrella rising
-  behind, and Jupiter behind all of it, wider than the frame.
+- **Scale (02):** long lens: a tiny astronaut and lander on a ridge, mountains, and Jupiter behind all of it, wider than the frame.
 - **Eternity (03):** locked-off time-lapse over one Io day (42 h): stars, Sun and shadows wheel; Jupiter's phase
   runs full → half → crescent and the Great Red Spot rolls past, but **Jupiter itself never moves**.
 - **Peak (04):** eclipse. The crescent thins, the Sun touches the limb and is gone: a black disc ringed in red,
@@ -56,10 +55,10 @@ Jupiter is a wall with no edges, which is the megalophobia image (02).
 | # | clip | dur | lens / camera | action | caption |
 |---|---|---:|---|---|---|
 | 01 | horizon | 9 s | 24 mm, eye 1.6 m, slow tilt −30° → +14° | prints and a lander foot in frost → black starry sky → Jupiter's lower limb enters, ends filling the upper third | IO · 木卫一 |
-| 02 | scale | 11 s | 135 mm, locked, 1 km from the ridge | night (Sun 13° down): astronaut (idle, head turns up) + lander in silhouette on a ridge; Jupiter (93 % lit) wider than the frame behind; a plume umbrella rises at the left | JUPITER · 19° OF SKY / 它占据五分之一个天空 |
+| 02 | scale | 11 s | 135 mm, locked, 1 km from the ridge | night (Sun 13° down): astronaut (idle, leans back, raises an arm to Jupiter) + lander in silhouette on a ridge; Jupiter (93 % lit) wider than the frame behind (plume moved to 05, 2026-10-03) | JUPITER · 19° OF SKY / 它占据五分之一个天空 |
 | 03 | eternity | 12 s | 20 mm, locked, wide | 42 h in 12 s: Sun + stars wheel, shadows sweep, phase full → half → crescent, GRS rolls past; Jupiter still; counter +0 h → +42 h | IT NEVER RISES. IT NEVER SETS. / 它不升起，也不落下 |
 | 04 | eclipse | 14 s | 28 mm, locked, whole disc in frame, from a 40 m rise | real time compressed ~10×: crescent thins, Sun meets the limb, gone → black disc + red ring, ground dark, Loki-type lava glows, stars bloom | — (silence) |
-| 05 | forever | 10 s | 35 → 24 mm, rise + pull back 2 m → 3 km | astronaut → plain → the curve of Io under the black disc; the Sun's diamond on the limb; fade to black | EVERY 42 HOURS. FOREVER. / 每 42 小时，永远 |
+| 05 | forever | 10 s | 35 → 24 mm, rise + pull back 2 m → 3 km | astronaut → plain → the curve of Io under the black disc, a plume umbrella standing on the horizon; the Sun's diamond on the limb; fade to black | EVERY 42 HOURS. FOREVER. / 每 42 小时，永远 |
 | 06 | title | 4 s | card | IO · 永恒 on black | — |
 
 ## 6. Beat sheet (key clip 04)
@@ -77,7 +76,7 @@ bloom, vents and a lava lake glow on the plain, the ring's colour steadies · 9.
 | clip | ambience | foley (through the suit) | music | silence |
 |---|---|---|---|---|
 | 01 | suit hum, faint fan | breath, boot crunch felt not heard | — | — |
-| 02 | suit hum | slow breath; a low thud through the ground as the plume vents | sub drone enters | — |
+| 02 | suit hum | slow breath; a suit creak as the arm rises | sub drone enters | — |
 | 03 | suit hum | breath sped up with time (ticks) | drone + slow pulse, one chord per Io "hour" | — |
 | 04 | hum fades | breath held | drone drops out at contact | **near-silence 5–9 s**, then one heartbeat |
 | 05 | hum returns | breath out | the chord returns with the Sun's diamond, resolves | before the title |
