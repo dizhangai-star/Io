@@ -32,14 +32,29 @@ Motion: Mixamo "Breathing Idle" (`../../_assets/mocap/`, 9.93 s, loops cleanly) 
 rest-aligned world-rotation transfer in the character's own frame, hips → root bone, 30 → 24 fps, loop, additive
 direction layer (02 look-up = chest lean back, 20° tested). Feet slide ≤ 23 mm, hips sway 14 cm. Board `--clip` mode
 → `frames/astronaut/idle.png`; Workbench motion draft `out/astronaut-idle-animatic.mp4` (0.1 s/frame).
-**Motion approved (user 2026-10-03).** **Next: Sprint 3, shot 01** (one shot per session).
+**Motion approved (user 2026-10-03).**
+**Sprint 3 · shot 01 locked (user 2026-10-03).** `blender/shots/s01_horizon.py`: 24 mm, eye
+1.6 m, one tilt −30° → +14° (trapezoid speed, smooth ramps, 0.8–7.4 s; hold after), Sun elongation 70°
+(`physics.SHOT['01']`: Sun 5.1° up at az −71°, out of frame left; Jupiter 33 % lit, its lit lower limb enters the
+frame top at 3.4 s). Ground: frost plain (`surface(frost=1, clod=0.06, prints=True)`), two terrain patches (near
+0.5–24 m, 1201 seg; far 24 m–9 km, 401 seg, seam crack-free), 124 boot prints (`blender/lib/prints.py`: out-trail from
+the ladder foot toward Jupiter, return trail to the camera, milling at the ladder; 0.8 cm deep, rim, 2 mm chevron
+lugs fading by 6 m, 'prints' attribute half-darkens the trodden frost), one tilted-block massif on the horizon right
+at true distance (115 km, curvature hides 3 km). Lander: new `blender/lib/lander.py` (generic, ours: 8 m pad to pad,
+gold-foil stage, white cabin, telescoping struts, ladder on leg 1); in 01 only one footpad + leg + ladder foot show.
+Animatic `out/01-horizon-animatic.mp4` (0.2 s/frame); Cycles check `frames/01-horizon-strip.png` (0.5 / 4.5 / 8.5 s):
+≈ 9 s/frame full res, 64 spp → ≈ 33 min for the clip. Shared-lib changes keep 02/04 identical (new `surface` args
+default off; Workbench now resets the film exposure to 0).
+User review 2026-10-03: end pitch +14°, prints shallower (were 1.5 cm, read as dark slots), left massif removed:
+all done (strip + animatic refreshed); **01 locked**. **Next: shot 02 (animate the spike: astronaut idle + look-up,
+plume rising) in a new session.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
-3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session).
+3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 2026-10-03.
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
@@ -58,6 +73,8 @@ direction layer (02 look-up = chest lean back, 20° tested). Feet slide ≤ 23 m
   to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer
   on `chest`/`spine` over one Mixamo idle. Plain suit, no flags or mission patches (user 2026-10-03).
 - Standalone episode 2; grade matched to 巨物.
+- 01 locked (user 2026-10-03): day, Sun elongation 70°; tilt −30° → +14°; lander only as a footpad in frame; prints 0.8 cm;
+  one massif on the horizon (right).
 
 ## Open technical checks
 - Eclipse ring colour/width (Cassini / New Horizons eclipse images) and how it brightens near contact.

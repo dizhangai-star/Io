@@ -131,9 +131,11 @@ def contact_elong():
 
 E_SUN = S_EARTH / AU_J ** 2                                   # W/m², sunlight at Io
 
-# Per-shot picks (directing), everything else derived. 02 (user 2026-10-02: night): the Sun 13° below the horizon,
+# Per-shot picks (directing), everything else derived. 01: day, the Sun 5° up in the east (out of frame left), Jupiter
+# 33 % lit (lit limb on the left, its lower limb lit as it enters), grazing light that carves the boot prints. 02 (user 2026-10-02: night): the Sun 13° below the horizon,
 # Jupiter 93 % lit, the ridge and the figures in silhouette against it; 04 still: the Sun 2.5° inside the limb (eclipse peak in the beat sheet).
 SHOT = {
+    '01': dict(elong=70.0),
     '02': dict(elong=150.0),
     '04': dict(elong=contact_elong() - 2.5),
 }
