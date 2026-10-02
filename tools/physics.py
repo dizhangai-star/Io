@@ -153,10 +153,11 @@ SHOT = {
     # skips ~2 h 17 min of the eclipse: 05 opens `contact` s before third contact in real time; from contact the rate
     # eases (smoothstep over `ramp` s) up to the rate that brings the whole Sun out by `full` s. Camera: holds `hold`
     # s, then rises log-eased (smoothstep in log altitude) from alt[0] m to alt[1] km by `rise` s, the lens zooming
-    # lens[0] → lens[1] mm with the disc's top kept 1° under the frame top. Plume (Prometheus-type umbrella): apex
+    # lens[0] → lens[1] mm with the disc's top kept 0.7° under the frame top
+    # (04's lens and margin at 0 s, so the ring sits on 04's last frame for the 04 → 05 dissolve, Sprint 4.01). Plume (Prometheus-type umbrella): apex
     # `h` km, ejecta up to `cone`° off vertical, vent `d` km from the site at azimuth `az`°: a little east, so the
     # sweeping light reaches it ≈ 2 s after the diamond (west of the site it lit before third contact).
-    '05': dict(dur=10.0, contact=5.0, full=8.0, ramp=2.0, hold=1.0, rise=9.0, alt=(0.8, 100.0), lens=(29.0, 17.0),
+    '05': dict(dur=10.0, contact=5.0, full=8.0, ramp=2.0, hold=1.0, rise=9.0, alt=(0.8, 100.0), lens=(28.0, 17.0),
                plume=dict(h=100.0, cone=24.0, d=450.0, az=-6.0)),
 }
 
