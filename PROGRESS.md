@@ -20,12 +20,24 @@ yellow equatorial plains the code palette assumed.
 (`POLAR`), laid out by km noise + the Galileo PIA02507 pattern (5.5 m/px, mirrored, mask only), with frost fields
 (~10 %), sulfur deposits (~6 %), red sulfur and dark lava on top (`frames/spike/ground-polar-test.png`: 04 framing
 with the Sun 11° up, and 02 day). Low sun + AgX makes the plain read grey-tan; judge saturation in 01/03 look-dev.
-**Next: Sprint 2, astronaut** (rigged model: show author/licence/preview first; Mixamo clip, user downloads).
+**Sprint 2 (astronaut) done 2026-10-03.** Model chosen by the user: Blend Swap #12622 NASA EMU suit, rigged
+(jgilhutton, CC-BY 4.0), in `../../_assets/models/astronaut-emu-12622/`. `tools/prep_astronaut.py` writes
+`emu_clean.blend` beside it (multires L3 applied, 2 stray sculpt vertices relaxed, IK/FK helpers + 6 dependency cycles
+removed, plain deform bones, gold sun visor kept down, soles on z = 0, no emblems). `blender/lib/astronaut.py` `load(sc, loc,
+heading)` appends it under an empty root (proxy fallback). Look board `blender/shots/board_astronaut.py` →
+`frames/astronaut/sheet.png` (4 headings Sun-lit, 2 against the light, 200 mm helmet): ≈ 5 s/still at 50 %.
+**Look approved (user 2026-10-03), emblems plain** (the original's UN flags, ISS patch and shoulder patch removed).
+Motion: Mixamo "Breathing Idle" (`../../_assets/mocap/`, 9.93 s, loops cleanly) → `blender/lib/retarget.py`
+`retarget(sc, arm, 'Breathing Idle.fbx', extra={'chest': f→Quaternion})` bakes it to an Action (≈ 3 s for 240 frames):
+rest-aligned world-rotation transfer in the character's own frame, hips → root bone, 30 → 24 fps, loop, additive
+direction layer (02 look-up = chest lean back, 20° tested). Feet slide ≤ 23 mm, hips sway 14 cm. Board `--clip` mode
+→ `frames/astronaut/idle.png`; Workbench motion draft `out/astronaut-idle-animatic.mp4` (0.1 s/frame).
+**Motion approved (user 2026-10-03).** **Next: Sprint 3, shot 01** (one shot per session).
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
-2. Astronaut: pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
+2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session).
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
@@ -42,6 +54,9 @@ with the Sun 11° up, and 02 day). Low sun + AgX makes the plain read grey-tan; 
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
 - Scale cues: distant astronaut (ready-made rigged + Mixamo), code-built lander, boot prints.
+- Astronaut = Blend Swap #12622 NASA EMU (user 2026-10-02), gold visor down (the helmet is empty). The helmet is fixed
+  to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer
+  on `chest`/`spine` over one Mixamo idle. Plain suit, no flags or mission patches (user 2026-10-03).
 - Standalone episode 2; grade matched to 巨物.
 
 ## Open technical checks
@@ -62,4 +77,13 @@ with the Sun 11° up, and 02 day). Low sun + AgX makes the plain read grey-tan; 
 - The terrain patch covers only the view sector: a Sun behind or below lights it through the gap. `io_world.io_body`
   (shadow-only curved skirt) closes it; keep it ≤ ~100 km or it shadows the scaled-down Jupiter (1000 km out).
 - `world_to_camera_view` in a headless probe needs `view_layer.update()` first (matrices are identity until then).
+- Sun elongation 0 puts the Sun behind Jupiter (eclipse): a board lit "at the Sun's highest" rendered black. For a
+  sunlit look use elong ±25…60 (Sun 13.6…7.4° up); the Sun is always in the southern half of the sky when up.
+- Painting a decal out of a texture: clone neighbouring fabric into colour *and* normal map (a median fill, or a
+  colour-only clone, leaves a smooth blank label).
+- Retarget: transfer rotations in each character's own frame (source world at the origin ≡ target armature space),
+  never the target's world (a turned root flipped the arms up). Align rest poses only for bones within ~60° of
+  their twin (Mixamo Hips points up, the EMU hips down: the shortest arc of opposite vectors is undefined and folded
+  the legs). The file's thighs didn't inherit the hips' rotation; prep turns inherit on for every bone.
+- 2.6x Rigify-style files keep the look in pose bones (here the helmet visors): don't reset every pose bone in a prep.
 - Workbench hides camera-invisible objects (the Io-body skirt, the ring shell) automatically (`shot.engine`).
