@@ -61,13 +61,33 @@ figure crop; mp4s are padded to 1080, crop from the PNGs); Cycles check `frames/
 full res, 64 spp, 3 stills in 56 s ≈ 7 s/frame + build): the raised arm reads as a 1-px line against the disc.
 User review 2026-10-03: arm raise reads, 02 = night only (the `--elong 80` day variant is a spike option, not a
 second shot); **02 locked**. **Next: shot 03 (42 h time-lapse) in a new session.**
+**Sprint 3 · shot 03 locked (user 2026-10-03).** Span (user 2026-10-03): a 42 h day always contains the
+noon eclipse, so 03 runs **39 h, eclipse to eclipse, no eclipse inside**, centred on midnight, time rate eased
+(`physics.SHOT['03']`, `lapse03(t)` → hours, `lapse03_elong(h)`): 0.6 h/s at both ends, ramps 2 s in / 3 s out, peak
+3.95 h/s. Sun from 14.7° W of Jupiter (2 % crescent, lit limb right, 4.9° clear of the limb) → sunset 3.1 s → full
+Jupiter 5.8 s → sunrise 8.5 s (inside the caption) → 14.7° E (crescent, lit limb left; 04 starts after). Counter
+`[0, 39]` in the clip, eased: compile must read `physics.lapse03` (Sprint 4). `blender/shots/s03_eternity.py`: 20 mm,
+tripod 1.5 m, locked, pitch +6.5° (Jupiter 5.6–23.9° in a −14.2…+27.2° frame), **the 01 landing site from 22 m back**
+(new `lib/landing.py`: lander, trail, relief, massif moved out of s01; 01 pixel-identical after), lander right of the
+disc at az 19°, 24 m: its shadow sweeps. Stars turn about Io's pole (`sky.stars(axis=…)`, keyed `StarTurn`/`StarSmear`,
+12 taps → trails over the shutter); Jupiter spins 12.95 h per turn **seen from Io** (3×; GRS on the meridian at
+midnight); Cycles motion blur 0.5; Sun disc for the camera (`sky.sun_disc`, true size + radiance) + Fog Glow glare
+(`sky.glare`, compositor); exposure −4.5 with a +1.5 EV night lift keyed on Sun elevation (+2 washed Jupiter out).
+**Io's shadow transit:** at full Jupiter the scaled scene's real-size ground shadowed the scaled Jupiter (a black
+saucer). `jupiter.io_shadow` (opt-in): light linking, a second Sun lights only Jupiter and only a scaled Io (R·k =
+4.32 km sphere, sunk 30 m) blocks it → Io's real shadow, a ≈ 0.4° black dot crossing the full disc (~0.6 s).
+Animatic (EEVEE, 1.9 s/frame at 50 %; no Jupiter-shine in EEVEE, Cycles has it) `out/03-eternity-animatic.mp4`;
+Cycles check `frames/03-eternity-check.png` (0.5 / 3.0 / 5.8 / 8.5 / 11.5 s, 50 %, ≈ 3.5 s/still) → full clip
+≈ 288 × ~10 s ≈ 45–50 min. physics: Io sidereal 42.459 h + synodic corrected 42.456 → 42.477 h (table only).
+User review 2026-10-03: locked as is (night ground dark at +1.5 EV, black-sky open/close with the Sun beside the
+hairline crescent). **Next: shot 04 (eclipse; fix its ~10× vs ~280× time compression) in a new session.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
 1. ✅ Look spike: 02 night (1 km ridge), 04 eclipse (28 mm), 14K Jupiter map, polar ground palette (2026-10-02).
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
-3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 2026-10-03.
+3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 2026-10-03.
 4. Whole-film animatic; score + suit foley cut to it; caption + counter overlay in compile.
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
@@ -82,6 +102,7 @@ second shot); **02 locked**. **Next: shot 03 (42 h time-lapse) in a new session.
 - 02: night (Sun −13°, Jupiter 93 % lit), ridge 1 km out, figures in silhouette; 04: 28 mm from a 40 m rise
   (35 mm leaves no ground) (user 2026-10-02).
 - 02 has no plume; the plume umbrella is in 05 (user 2026-10-03, geometry in State).
+- 03: 39 h, eclipse to eclipse (no eclipse inside), eased rate (user 2026-10-03); EEVEE animatic (light is the beat).
 - Scale cues: distant astronaut (ready-made rigged + Mixamo), code-built lander, boot prints.
 - Astronaut = Blend Swap #12622 NASA EMU (user 2026-10-02), gold visor down (the helmet is empty). The helmet is fixed
   to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer
@@ -100,6 +121,11 @@ second shot); **02 locked**. **Next: shot 03 (42 h time-lapse) in a new session.
   (04 ramps it up after second contact, "eyes adjust").
 
 ## Notes / lessons
+- Scaled-far scenes: near real-size occluders shadow the scaled Jupiter whenever the Sun is opposite it. Fix with
+  light linking (Jupiter's own Sun, only a scaled Io as blocker), which also gives Io's real shadow transit.
+- Jupiter seen from Io turns in 12.95 h, not 9.925 h (Io orbits the same way). World-shader animation gets no Cycles
+  motion blur: smear stars by hand (several rotated lookups over the shutter).
+- `Collection.collection_objects` takes an index, not a name, in 5.2.
 - Hubble OPAL maps are 0.1°/px, no sharper than Cassini PIA07782; the 14K Jónsson map is the sharpest global one.
 - USGS GeoTIFFs: the pixel-scale tag is positive but rows run south (dlat < 0); planetarymaps.usgs.gov 403s Python's
   default User-Agent.

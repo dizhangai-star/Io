@@ -25,8 +25,8 @@ import bpy
 import numpy as np
 from mathutils import Vector
 import physics
-from lib import nodes, rig, shot, io_world, jupiter, sky, prints, lander
-for m in (physics, nodes, rig, shot, io_world, jupiter, sky, prints, lander):
+from lib import nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing
+for m in (physics, nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing):
     importlib.reload(m)
 W = io_world
 P = physics
@@ -45,69 +45,23 @@ rig.render_settings(sc, samples=A.samples, res=shot.RES, pct=A.pct)
 sc.frame_start, sc.frame_end = 1, A.frames
 sky.exposure(sc, float(A.opt('exposure', -3.0)))
 
-# ---------------------------------------------------------------- lander (right) and the trail
-PAD = (1.03, 2.82)                                               # the footpad in frame (az 20°, 3.0 m)
-LANDER = (4.62, 1.06)                                            # body centre: az 77°, 4.7 m, out of frame right
-LEG = 1                                                          # the leg in frame (it carries the ladder)
-L_HEAD = math.degrees(math.atan2(PAD[1] - LANDER[1], PAD[0] - LANDER[0])) - (45 + 90 * LEG)
-OUT = [(0.45, 3.3), (0.5, 8.0), (-1.2, 20.0), (-3.4, 40.0), (-4.2, 75.0)]      # down the ladder, out toward Jupiter
-BACK = [(-0.35, 0.75), (-0.45, 7.0), (-2.3, 19.0), (-4.5, 39.0), (-5.4, 75.0)]  # and back to where the camera stands
-PR = (prints.trail(OUT, stride=1.3, seed=1, depth=0.008)
-      + prints.trail(BACK, stride=1.25, seed=2, back=True, start=0.4, depth=0.008))
-rng = np.random.default_rng(3)
-for _ in range(9):                                               # milling about at the foot of the ladder
-    a, r = rng.uniform(0, 2 * math.pi), rng.uniform(0.25, 0.8)
-    PR.append((PAD[0] + 0.15 + r * math.cos(a), PAD[1] - 0.85 + r * math.sin(a), rng.uniform(-180, 180),
-               0.007 * rng.uniform(0.7, 1.1), 1))
-
-
-# ---------------------------------------------------------------- ground: frost plain, micro-relief, the prints
-def base(X, Y):
-    return (9.0 * (W.fbm(X / 900, Y / 900, 4, 20) - 0.5) + 1.5 * (W.fbm(X / 150, Y / 150, 4, 21) - 0.5) + 0.25 * (W.fbm(X / 12, Y / 12, 4, 22) - 0.5)
-            + 0.03 * (W.fbm(X / 0.8, Y / 0.8, 3, 23) - 0.5))
-
-
-def height(X, Y):
-    d = np.hypot(X - PAD[0], Y - PAD[1]) - 0.47                   # the footpad's push-up rim of fines
-    return base(X, Y) + prints.stamp(X, Y, PR)[0] + 0.015 * np.exp(-(d / 0.06) ** 2)
-
-
+# ---------------------------------------------------------------- the landing site (lib/landing.py: lander right, the trail)
+L = landing
+PR = L.PR
+height = L.height
 mat = W.surface('IoSurface', frost=float(A.opt('frost', 1.0)), prints=True, clod=float(A.opt('clod', 0.06)))
 near = W.terrain(sc, 'GroundNear', W.rings(0.5, 24.0, 0.0025), 0.0, HALF, 1201, height, mat)
 far = W.terrain(sc, 'GroundFar', W.rings(24.0, 9000.0, 0.004), 0.0, HALF, 401, height, mat)
-for ob in (near, far):                                           # trodden soil → the material's 'prints' mask
-    me = ob.data
-    co = np.empty(len(me.vertices) * 3, np.float32)
-    me.vertices.foreach_get('co', co)
-    co = co.reshape(-1, 3)
-    at = me.attributes.new('prints', 'FLOAT', 'POINT')
-    at.data.foreach_set('value', prints.stamp(co[:, 0], co[:, 1], PR)[1].astype(np.float32))
-# a massif on the far horizon (right; the left one removed, user 2026-10-03), at true distance (Io's curvature hides their lower 4–5 km). Io's mountains are
-# tilted crustal blocks: long, flat-topped, steep scarps. (az°, km away, km high, km long, km wide, strike°, tilt)
-MASSIFS = [(31.0, 115.0, 7.0, 45.0, 20.0, 110.0, -0.6)]
-
-
-def mountains(X, Y):
-    z = np.zeros_like(X)
-    for az, d, hgt, ln, wd, strike, tilt in MASSIFS:
-        cx, cy = 1000 * d * math.sin(math.radians(az)), 1000 * d * math.cos(math.radians(az))
-        sa, ca = math.sin(math.radians(strike)), math.cos(math.radians(strike))
-        u, v = ((X - cx) * sa + (Y - cy) * ca) / (500 * ln), ((X - cx) * ca - (Y - cy) * sa) / (500 * wd)
-        edge = 1 + 0.25 * (W.fbm(X / 4000, Y / 4000, 4, 31) - 0.5)          # ragged outline
-        body = W.smooth(1.0, 0.82, np.hypot(u, v) / edge)                    # plateau with steep scarps
-        top = 0.75 + 0.25 * tilt * u + 0.15 * (W.fbm(X / 3000, Y / 3000, 5, 32) - 0.5)
-        z += 1000 * hgt * body * top
-    return z
-
-
-W.terrain(sc, 'Massifs', W.rings(60000.0, 200000.0, 0.004), 0.0, HALF, 1201, mountains,
+for ob in (near, far):
+    L.mark_prints(ob)
+W.terrain(sc, 'Massifs', W.rings(60000.0, 200000.0, 0.004), 0.0, HALF, 1201, L.mountains,
           W.surface('IoMassif', scale=30.0, frost=0.3))
 W.io_body(sc)
 
 z0 = W.ground_z(height, 0, 0)
 cam_loc = Vector((0.0, 0.0, z0 + EYE))
 
-lander.build(sc, LANDER, L_HEAD, W.ground_z(height, *PAD) - 0.04, ladder_leg=LEG)   # the pad sunk 4 cm
+L.build_lander(sc, height)                                      # the pad sunk 4 cm
 
 # ---------------------------------------------------------------- sky, Sun, Jupiter
 sky.sun(sc, ELONG)
