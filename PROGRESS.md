@@ -189,7 +189,25 @@ fallback: sub thump at 0.45 + a 100–200 Hz body + a skin tap; the first all-60
 Levels judged on K-weighted momentary loudness (ffmpeg ebur128), not RMS (the 55 Hz sub dominated RMS and the meter:
 drone 0.3 → 0.11). Sprint 5 note: `check.mjs` compares `out/io.mp4` with the kit's film() (66 s, no head / dissolve);
 ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
-**Next: trims decision (65.5 s now; 60 s target or keep) → Sprint 5 batch renderer + overnight render.**
+**Trims: none (user 2026-10-03): the film stays 65.5 s.** Sprint 5 started 2026-10-03 (branch `sprint-5-render`).
+User 2026-10-03: captions unchanged, poster = 02 night, **no overnight batch: the user runs each shot by hand**
+(`node render.mjs <id> --resume`, any order, as many as fit). **Sprint 5.01 · renderer done (2026-10-03).**
+`render.mjs --resume` keeps `frames/<id>/` and skips frames on disk (Blender `use_overwrite` off; 0-byte frames from a
+Ctrl-C deleted first; tested: 99 kept, 165 rendered); persistent data on for every real render (`shot.py --persist`).
+A/B, 6 full-res frames per shot, 64 spp, off → on: 01 6.5 → 6.0 s (PSNR 93 dB), 02 30.4 → 28.4 (92), 03 7.2 → 5.8
+(99), 04 5.4 → 3.8 (107/113), 05 10.6 → 9.5 (57): identical. **02 at 64 spp was 30 s/frame** (the old "7 s" was a
+lower-sample still): 32 spp = 15.6 s/frame, 54 dB vs 64, silhouettes unchanged → clip `samples: 32`
+(render.mjs reads `C.samples`). 04's bead (8.2–9.0 s, full res): monotonic fade, out at 9.0 s, no flicker. Bounces
+and `adaptive_threshold` left as they are (not worth the risk at these times).
+Estimates (persist on): 04 ≈ 15–25 min · 01 ≈ 22 · 03 ≈ 30–40 · 05 ≈ 40–50 · 02 ≈ 70 · 06 seconds → ≈ 3–3.5 h.
+**Renders (user, 2026-10-03):** 01, 03 (4:2:0, kept: their bright limb is a luma edge, raw = mp4), 05 and 04
+(4:4:4, see below) done; 02 rendering. **4:2:0 stepped the eclipse ring:** the 1–2 px orange ring on black lost half its
+chroma (blue-grey dashes, steps); raw PNG and 4:4:4 clean → `render.mjs` encodes real renders `yuv444p` (masters; QuickTime
+won't play them), 04 re-rendered (frame 200 = raw at 59 dB). A wider Cycles pixel filter (2.0/2.5) killed the Sun bead's
+glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81 ppi). **Delivery = 4K** (user
+2026-10-03): compile upscales to 3840×2160 lanczos, yuv420p (chroma then at the render's full resolution; preview
+`out/04-eclipse-4k-preview.mp4`). compile.mjs still converts to yuv420p at 1080 on input (line ~41): change both.
+**Next (new session): 02 lands → compile at 4K, check.mjs, srt, poster (02 night).**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -198,7 +216,7 @@ ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03; 06 ✅ (title card, no Blender).
 4. 4.01 ✅ whole-film animatic + joints + caption/counter overlay in compile (2026-10-03); 4.02 ✅ score + recorded breath + heartbeat cut to it (2026-10-03).
-5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
+5. 5.01 ✅ renderer (--resume, persistent data, 02 at 32 spp) 2026-10-03; renders by the user, shot by shot → compile, `check.mjs`, srt, poster (02 night).
 
 ## Decisions (locked)
 - Format: 1920×1080, 24 fps, picture 1920×804 (2.39:1) rendered, letterboxed at encode (saves ~25 % render time).
@@ -227,6 +245,7 @@ ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
   TAKES), none in 03; music cut dead at 04's first contact; three recorded heartbeats in 04 at 9.0 / 11.75 / 14.5 s;
   mixed by one gain to −16 LUFS + a −2 dB limiter (no loudnorm) in `compile.mjs`.
 - Standalone episode 2; grade matched to 巨物.
+- Length: 65.5 s, no trims (user 2026-10-03). Delivery 3840×2160 (4K upscale at compile, yuv420p); clip masters 4:4:4.
 - 01 locked (user 2026-10-03): day, Sun elongation 70°; tilt −30° → +14°; lander only as a footpad in frame; prints 0.8 cm;
   one massif on the horizon (right).
 
@@ -269,3 +288,7 @@ ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
   the legs). The file's thighs didn't inherit the hips' rotation; prep turns inherit on for every bone.
 - 2.6x Rigify-style files keep the look in pose bones (here the helmet visors): don't reset every pose bone in a prep.
 - Workbench hides camera-invisible objects (the Io-body skirt, the ring shell) automatically (`shot.engine`).
+- File size ≠ render cost: 02 (locked camera, static Jupiter and stars, only a 14-px astronaut moving) cost 70 min of
+  Cycles for an 848 kB mp4. For a locked shot with a small moving part: render one full plate, then per frame only a
+  border region around the mover (`render.use_border`, fixed seed, a margin of a few px for the denoiser) composited
+  over it → minutes, not an hour. Check what moves before a long render.
