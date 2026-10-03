@@ -9,7 +9,8 @@
 //   --resume: keep frames/<id>/ and skip frames already on disk (stop with Ctrl-C any time, rerun to continue);
 //   without it the folder is cleared first. Real renders keep the synced scene between frames (persistent data:
 //   8–30 % faster, pixel-identical in the Sprint 5 A/B). clips/<id>.js `samples: N` overrides config.samples.
-//   Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
+//   Real renders are encoded 4:4:4 (the 1-px eclipse ring on black breaks into colour steps at 4:2:0); compile makes
+//   the delivery. Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { loadClip, rel, config, argv, kitRoot } from '../../_kit/lib/film.mjs';
@@ -50,7 +51,7 @@ console.log(log.split('\n').filter((l) => l.startsWith('SHOT')).join('\n'));
 
 fs.mkdirSync(rel('out'), { recursive: true });
 execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(config.fps), '-i', `${dir}/%04d.png`,
-  '-vf', 'scale=1920:-2,pad=1920:1080:0:(oh-ih)/2:black', '-c:v', 'libx264', '-preset', 'slow', '-crf', String(config.crf), '-pix_fmt', 'yuv420p', '-movflags', '+faststart', rel(`out/${name}.mp4`)]);
+  '-vf', 'scale=1920:-2,pad=1920:1080:0:(oh-ih)/2:black', '-c:v', 'libx264', '-preset', 'slow', '-crf', String(config.crf), '-pix_fmt', anim ? 'yuv420p' : 'yuv444p', '-movflags', '+faststart', rel(`out/${name}.mp4`)]);
 if (!A.has('keep')) fs.rmSync(dir, { recursive: true, force: true });   // (the freeze EXR goes with the frames)
 console.log(`${id}: ${frames} frames → out/${name}.mp4 in ${((Date.now() - t0) / 60000).toFixed(1)} min`);
 if (anim && config.soundtrack !== 'none') console.log('animatic: no sound yet (the kit mix writes out/<id>.mp4 only)');
