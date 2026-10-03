@@ -200,7 +200,14 @@ lower-sample still): 32 spp = 15.6 s/frame, 54 dB vs 64, silhouettes unchanged �
 (render.mjs reads `C.samples`). 04's bead (8.2–9.0 s, full res): monotonic fade, out at 9.0 s, no flicker. Bounces
 and `adaptive_threshold` left as they are (not worth the risk at these times).
 Estimates (persist on): 04 ≈ 15–25 min · 01 ≈ 22 · 03 ≈ 30–40 · 05 ≈ 40–50 · 02 ≈ 70 · 06 seconds → ≈ 3–3.5 h.
-**Next: the user's renders land in `out/<id>.mp4` → compile, check.mjs, srt, poster (02 night) in a new session.**
+**Renders (user, 2026-10-03):** 01, 03 (4:2:0, kept: their bright limb is a luma edge, raw = mp4), 05 and 04
+(4:4:4, see below) done; 02 rendering. **4:2:0 stepped the eclipse ring:** the 1–2 px orange ring on black lost half its
+chroma (blue-grey dashes, steps); raw PNG and 4:4:4 clean → `render.mjs` encodes real renders `yuv444p` (masters; QuickTime
+won't play them), 04 re-rendered (frame 200 = raw at 59 dB). A wider Cycles pixel filter (2.0/2.5) killed the Sun bead's
+glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81 ppi). **Delivery = 4K** (user
+2026-10-03): compile upscales to 3840×2160 lanczos, yuv420p (chroma then at the render's full resolution; preview
+`out/04-eclipse-4k-preview.mp4`). compile.mjs still converts to yuv420p at 1080 on input (line ~41): change both.
+**Next (new session): 02 lands → compile at 4K, check.mjs, srt, poster (02 night).**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -238,7 +245,7 @@ Estimates (persist on): 04 ≈ 15–25 min · 01 ≈ 22 · 03 ≈ 30–40 · 05 
   TAKES), none in 03; music cut dead at 04's first contact; three recorded heartbeats in 04 at 9.0 / 11.75 / 14.5 s;
   mixed by one gain to −16 LUFS + a −2 dB limiter (no loudnorm) in `compile.mjs`.
 - Standalone episode 2; grade matched to 巨物.
-- Length: 65.5 s, no trims (user 2026-10-03).
+- Length: 65.5 s, no trims (user 2026-10-03). Delivery 3840×2160 (4K upscale at compile, yuv420p); clip masters 4:4:4.
 - 01 locked (user 2026-10-03): day, Sun elongation 70°; tilt −30° → +14°; lander only as a footpad in frame; prints 0.8 cm;
   one massif on the horizon (right).
 
