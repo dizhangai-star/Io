@@ -120,9 +120,16 @@ def run(sc, A, tag=None):
             sc.render.filepath = os.path.join(d, f'{A.opt("id", tag)}-f{f:04d}.png')
             bpy.ops.render.render(write_still=True, scene=sc.name)
         print(f'SHOT {tag}: stills {stills} in {time.time() - t:.1f}s')
+    if A.opt('persist'):                      # keep the synced scene between frames (static grounds aren't re-sent)
+        sc.render.use_persistent_data = True
+    if A.opt('start'):                        # A/B tests: a slice of the clip
+        sc.frame_start = int(A.opt('start'))
+        sc.frame_end = int(A.opt('end', sc.frame_end))
     if out:
         os.makedirs(out, exist_ok=True)
         sc.render.filepath = os.path.join(os.path.abspath(out), '')
+        if A.opt('resume'):                   # render.mjs --resume: skip frames already on disk
+            sc.render.use_overwrite, sc.render.use_placeholder = False, False
         end, F = sc.frame_end, int(A.opt('freeze', 0))
         if F:
             sc.frame_end = F - 1
