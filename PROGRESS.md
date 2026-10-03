@@ -1,6 +1,8 @@
 # Io · 永恒: progress
 
 ## State (2026-10-03)
+**DONE 2026-10-03:** *Io · 永恒*, 66.5 s, delivered `out/io.mp4` (3840×2160), `io.srt`, `poster.png`; merged (PR #12).
+
 **Sprint 1 (look spike) done 2026-10-02.** Stills in `frames/spike/` (sheet.png):
 02 day (Sun 2.6° up, Jupiter 41 % lit, sunlit ridge), 02 night (Sun −13°, Jupiter 93 % lit, ridge + figures in
 silhouette), 04 eclipse peak (28 mm, black disc + red ring, lava lake, stars). Libs: `blender/lib/io_world.py`
@@ -218,8 +220,8 @@ your breath):** they were −22.8 / −20.3 / −18.4 LUFS momentary against bre
 cue v 0.6 / 0.8 / 1 → 1 / 1.06 / 1.12: now −15.9 / −15.6 / −15.3 (breaths −15.7, music −14.2); the last beat touches the
 −2 dB limiter (TP −1.7 dBTP, integrated −15.9 unchanged). **Slower end (user 2026-10-03: the last fade was too quick):** 06 is 5 s
 (was 4), its type fades out over 1.6 s (was 0.8; `card.mjs` T = [in, out, fade in, fade out], gone by 4.5, 0.5 s black
-tail) and the title note decays with it (cue d 2.4, rel 0.6: `syn`'s release starts after d) → **film 66.5 s**. **Film finished; waiting for the user's
-sign-off, then commit + PR.**
+tail) and the title note decays with it (cue d 2.4, rel 0.6: `syn`'s release starts after d) → **film 66.5 s**. **Film finished; signed off and merged to
+main 2026-10-03 (PR #12). Project done.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
