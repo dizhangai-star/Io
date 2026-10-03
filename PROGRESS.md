@@ -288,3 +288,7 @@ glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81
   the legs). The file's thighs didn't inherit the hips' rotation; prep turns inherit on for every bone.
 - 2.6x Rigify-style files keep the look in pose bones (here the helmet visors): don't reset every pose bone in a prep.
 - Workbench hides camera-invisible objects (the Io-body skirt, the ring shell) automatically (`shot.engine`).
+- File size ≠ render cost: 02 (locked camera, static Jupiter and stars, only a 14-px astronaut moving) cost 70 min of
+  Cycles for an 848 kB mp4. For a locked shot with a small moving part: render one full plate, then per frame only a
+  border region around the mover (`render.use_border`, fixed seed, a margin of a few px for the denoiser) composited
+  over it → minutes, not an hour. Check what moves before a long render.
