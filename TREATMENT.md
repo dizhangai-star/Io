@@ -85,11 +85,14 @@ exposure (`clip.freeze`, `shot.freeze`: stars drift ≤ 1 px, the lava is static
 - Astronaut: rigged suit model (Blend Swap → Sketchfab, shown to the user first) + Mixamo clip (user downloads).
 - Stars: procedural, or a public-domain star map (Gaia/Tycho-based).
 
-## 8. Sound design
-| clip | ambience | foley (through the suit) | music | silence |
-|---|---|---|---|---|
-| 01 | suit hum, faint fan | breath, boot crunch felt not heard | — | — |
-| 02 | suit hum | slow breath; a suit creak as the arm rises | sub drone enters | — |
-| 03 | suit hum | breath sped up with time (ticks) | drone + slow pulse, one chord per Io "hour" | — |
-| 04 | hum fades (0–4 s) | breath held | drone cuts at first contact (4.0 s) | **near-silence 4–14.5 s**, one heartbeat at 14.5 s, silence to the cut |
-| 05 | hum returns | breath out | the chord returns with the Sun's diamond, resolves | before the title |
+## 8. Sound design (locked 2026-10-03, `audio/music.mjs`)
+Vacuum, and the suit is silent too: the only human sounds are breath and the heart, with true silence between them.
+| clip | breath / body (recorded, CC0) | music (synth) | silence |
+|---|---|---|---|
+| head | one inhale + exhale before the picture | — | — |
+| 01 | a small quick intake as Jupiter's limb enters (3.5 s), held, a shaky release (6.4 s) | — | between breaths |
+| 02 | in as the arm rises (2.2 s), held while it points, out before it lowers (6.2 s) | sub drone A1 + A2 (J-cut −0.6 s) | — |
+| 03 | none (time-lapse: human time is gone) | drone + pad turning with the light (Am9 → sunset Fmaj7 → full G6/9 → sunrise Esus4) + a glass tick on every counter hour | — |
+| 04 | one inhale (0.15 s), held; heartbeats 9.0 / 11.75 / 14.5 s, growing | Esus swell + riser into first contact (4.0 s), cut dead there | **4.0 → 20 s except the three beats** |
+| 05 | a long exhale with the dissolve (0.4 s), one faint breath receding as we rise | drone back; the diamond rings (5.0 s), the chord resolves to A add9 by the whole Sun (8.0 s); plume shimmer (7.0 s) | fades with the picture |
+| 06 | — | one held A4 under the title (as 巨物) | 0.5 s before it |

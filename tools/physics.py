@@ -371,8 +371,31 @@ def card():
             'eclipse_every_h': round(P_SYN, 2), 'eclipse_h': round(2 * R_J / V_IO / 3600, 2)}
 
 
+def _cross03(f, lo, hi):
+    """03: the clip second in [lo, hi] where f(s) changes sign (bisection)."""
+    a = f(lo) > 0
+    for _ in range(50):
+        m = (lo + hi) / 2
+        lo, hi = (m, hi) if (f(m) > 0) == a else (lo, m)
+    return round(lo, 3)
+
+
+def sound():
+    """Sound cue times in clip seconds (audio/music.mjs reads `python3 tools/physics.py --sound`): 03's whole hours
+    (the counter's ticks), sunset / full Jupiter / sunrise; 04's contacts; 05's third contact and whole Sun."""
+    c3, c4, c5 = SHOT['03'], SHOT['04'], SHOT['05']
+    el = lambda s: alt_az(sun_local(lapse03_elong(lapse03(s))))[0]
+    mid = lapse03_second(c3['hours'] / 2)
+    return {'03': {'hours': [round(lapse03_second(h), 3) for h in range(1, int(c3['hours']))],
+                   'sunset': _cross03(el, 0, mid), 'full': round(mid, 3), 'sunrise': _cross03(el, mid, c3['dur'])},
+            '04': {'contact': c4['contact'], 'gone': c4['gone']},
+            '05': {'contact': c5['contact'], 'full': c5['full'], 'hold': c5['hold'], 'rise': c5['rise']}}
+
+
 if __name__ == '__main__' and '--card' in sys.argv:
     print(json.dumps(card()))
+elif __name__ == '__main__' and '--sound' in sys.argv:
+    print(json.dumps(sound()))
 elif __name__ == '__main__':
     rows = []
     d_sub = A_IO - R_IO

@@ -160,6 +160,36 @@ Animatics refreshed in EEVEE (13.5 min for all four): 05 50 % 4.3 min, 04 50 % 4
 1.8 min, 02 100 % 2.6 min (14-px astronaut); 03 and 06 unchanged. EEVEE draws 05's plume green (Cycles bluish).
 Trims (66 → 60 s target) not decided: judge in motion. **Next: user reviews the animatic → 4.02 (score + suit foley
 cut to `out/timeline.json`) in a new session.**
+**Sprint 4.02 · score + breath + heartbeat locked (user 2026-10-03).** `audio/music.mjs` (synth,
+no samples, seed 20261003) → `audio/build/film.wav` at the film's exact length; `compile.mjs` (animatic and final)
+mixes it in: one gain to −16 LUFS + `alimiter` at −2 dB, **not loudnorm** (the eclipse's near-silence gives a
+loudness range that flips loudnorm to dynamic mode, which would lift the silence); `--silent` skips it. Layout now in
+`tools/timeline.mjs` (HEAD / JOINTS / FADE_OUT + `layout()`), shared by compile and the score; compile asserts both
+agree. Physical cue times from `python3 tools/physics.py --sound` (03: the counter's 38 whole hours, sunset 3.098,
+full 5.788, sunrise 8.478; 04 contact/gone; 05 contact/full/hold); directing cues in each clip's `sfx`.
+**Suit silent, breath only (user 2026-10-03):** the first draft's suit hum (fan + airflow + pump), creaks and weight
+shift read as surf (plain band noise swelling every 4–5 s is how 巨物 made its waves) and pulled focus; now the only
+human sound is ~9 breaths, each a reaction, with true digital silence between them. **Breaths are recorded
+(user 2026-10-03: the synth whispered-vowel breath still read as fake):** two CC0 Freesound files the user downloaded
+to `../../_assets/audio/breath/` (mlitty 387620 slow deep breaths, one voice for all but one; drewsimko 682884 shaky
+breaths for 01's release; REFERENCES.md, `_assets/index.json`). `music.mjs` TAKES = [source, from, to] cut at the
+breath edges (1–6 kHz envelope; inhales bright with no mic pop, exhales with a < 150 Hz pop → high-pass 180 Hz ×2),
+afftdn, fades, levelled to one RMS (0.0063 × GS; user 2026-10-03: breath was a little forward); a cue's `take` plays the recording, else the synth `breath()`
+fallback with the cue's own options; `far` darkens and lowers. 01's catch is not the Freesound gasp (user: too
+theatrical) but the first 0.65 s of mlitty's steepest inhale (65.8 s, 0.27 s rise): a small quick intake.
+Schedule: head inhale −0.9 + exhale 1.0 (sound before picture) → 01 catch at 3.5 s as the limb enters, held 2.3 s,
+shaky release 6.4 s → 02 drone J-cut −0.6, in 2.2 s with the arm, held, out 6.2 s → 03 no breath (pad turning with
+the light: Am9 → Fmaj7 → G6/9-ish → Esus4; a glass tick per counter hour) → 04 one inhale 0.15 s held, Esus swell +
+riser to −11 LUFS at first contact, **music cut dead (gated after the reverb)**, silence, three heartbeats growing out of it, **recorded** (Freesound 332819, loudernoises, user-downloaded: one lub-dub cut from the 80 bpm loop, 2.985–3.70 s, TAKES `heart`, no high-pass) on the picture's beats: 9.0 s (second contact, black), 11.75 s (eyes adjusting), 14.5 s (stars up), 2.75 s apart, v 0.6 / 0.8 / 1 (user 2026-10-03: more immersive, slower than 80 bpm) → 05 long
+exhale 0.4 s, one faint receding breath 2.9/4.6 s, drone back, diamond rings (A5/E6/A6 glass), chord
+blooms to A add9 by the whole Sun (≈ −11), shimmer 7.0 s → fade with the picture, 0.5 s silence → 06 held A4.
+`out/io-animatic.mp4`: −16 LUFS, TP −1.9 dBTP, check OK (silences 5.2 +2.3 held breath, 37.0 → 51.9 between the heartbeats: intended). Breath ≈ −19…−21 momentary, music −16…−18, climaxes −11, heartbeats −24 / −21.6 / −19.7 dB RMS, peaks ≤ 0.66 (the synth beat, kept as the
+fallback: sub thump at 0.45 + a 100–200 Hz body + a skin tap; the first all-60 Hz beat was the film's sample peak, so the loudness gain
+(+7 dB) drove it ~6 dB into the limiter; now +0.9 dB. (Measure peaks in stereo: ffmpeg `-ac 1` sums L+R.)
+Levels judged on K-weighted momentary loudness (ffmpeg ebur128), not RMS (the 55 Hz sub dominated RMS and the meter:
+drone 0.3 → 0.11). Sprint 5 note: `check.mjs` compares `out/io.mp4` with the kit's film() (66 s, no head / dissolve);
+ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
+**Next: trims decision (65.5 s now; 60 s target or keep) → Sprint 5 batch renderer + overnight render.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -167,7 +197,7 @@ cut to `out/timeline.json`) in a new session.**
 2. ✅ Astronaut (EMU #12622 cleaned, look + Breathing Idle retarget approved 2026-10-03): pick a rigged model (show author/licence/preview first), Mixamo clip (user downloads), `retarget.py`,
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03; 06 ✅ (title card, no Blender).
-4. 4.01 ✅ whole-film animatic + joints + caption/counter overlay in compile (2026-10-03); 4.02 score + suit foley cut to it.
+4. 4.01 ✅ whole-film animatic + joints + caption/counter overlay in compile (2026-10-03); 4.02 ✅ score + recorded breath + heartbeat cut to it (2026-10-03).
 5. Overnight batch render (one yes for the list + hours) → compile, `check.mjs`, srt, poster.
 
 ## Decisions (locked)
@@ -193,6 +223,9 @@ cut to `out/timeline.json`) in a new session.**
 - Astronaut = Blend Swap #12622 NASA EMU (user 2026-10-02), gold visor down (the helmet is empty). The helmet is fixed
   to the hard upper torso as on a real EMU: "looking up" (02) is a lean of the upper body, keyed as an additive layer
   on `chest`/`spine` over one Mixamo idle. Plain suit, no flags or mission patches (user 2026-10-03).
+- Sound (user 2026-10-03): no suit sounds (hum/creaks read as surf); ~9 recorded breaths (CC0 Freesound, `audio/music.mjs`
+  TAKES), none in 03; music cut dead at 04's first contact; three recorded heartbeats in 04 at 9.0 / 11.75 / 14.5 s;
+  mixed by one gain to −16 LUFS + a −2 dB limiter (no loudnorm) in `compile.mjs`.
 - Standalone episode 2; grade matched to 巨物.
 - 01 locked (user 2026-10-03): day, Sun elongation 70°; tilt −30° → +14°; lander only as a footpad in frame; prints 0.8 cm;
   one massif on the horizon (right).
