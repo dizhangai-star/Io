@@ -10,7 +10,8 @@ import { createRequire } from 'node:module';
 import { loadClip, rel, config, argv, chrome, kitRoot } from '../../../_kit/lib/film.mjs';
 
 const puppeteer = createRequire(`${kitRoot}/package.json`)('puppeteer-core');
-const A = argv();
+const A = argv(undefined, ['4k']);
+const K = A.has('4k') ? 2 : 1, W = 1920 * K, H = 1080 * K;   // --4k: the same layout drawn ×6 for the 4K delivery (sharp type)
 const [id] = A.positional();
 const C = loadClip(id);
 const P = JSON.parse(execFileSync('python3', [rel('tools/physics.py'), '--card'], { encoding: 'utf8' }));
@@ -24,17 +25,17 @@ const LINES = [
   `木星 ${P.jupiter_deg}°，月亮的 ${P.moons} 倍  ·  每小时移动 ${P.moves_deg_h}°  ·  每 ${P.eclipse_every_h} 小时一次日食  ·  黑暗 ${P.eclipse_h} 小时`,
   `JUPITER ${P.jupiter_deg}° WIDE, ${P.moons}× THE MOON · MOVES ${P.moves_deg_h}° AN HOUR · AN ECLIPSE EVERY ${P.eclipse_every_h} H · ${P.eclipse_h} H OF DARK`,
 ];
-const T = { title: [0.4, 3.5, 0.8], lines: [1.1, 3.5, 0.8] };   // [in, out, fade] s: black 0–0.4, both gone by 3.5, black tail
+const T = { title: [0.4, 4.5, 0.8, 1.6], lines: [1.1, 4.5, 0.8, 1.6] };   // [in, out, fade in, fade out] s: black 0–0.4, both gone by 4.5, black tail; slow 1.6 s fade out (user 2026-10-03: the end was too quick)
 
 const page_ = `<!doctype html><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=JetBrains+Mono:wght@400&family=Noto+Serif+SC:wght@400&display=block" rel="stylesheet">
-<style>html,body{margin:0;background:#000}</style><canvas id="cv" width="1920" height="1080"></canvas>
+<style>html,body{margin:0;background:#000}</style><canvas id="cv" width="${W}" height="${H}"></canvas>
 <script>
 const S = ${JSON.stringify({ TITLE, LINES, T })};
 const EN = '"Cinzel", serif', ZH = '"Noto Serif SC", serif', MONO = '"JetBrains Mono", "Noto Serif SC", monospace';
 const x = document.getElementById('cv').getContext('2d');
 const ss = (a, b, t) => { const u = Math.min(1, Math.max(0, (t - a) / (b - a))); return u * u * (3 - 2 * u); };
-const alphaIn = (t, [a, b, f]) => ss(a, a + f, t) * (1 - ss(b - f, b, t));
+const alphaIn = (t, [a, b, fi, fo]) => ss(a, a + fi, t) * (1 - ss(b - fo, b, t));
 function text(s, px, py, font, color, a, spacing = 0) {
   if (a <= 0) return;
   x.save(); x.globalAlpha = a; x.font = font; x.fillStyle = color; x.textAlign = 'center'; x.textBaseline = 'middle';
@@ -42,7 +43,7 @@ function text(s, px, py, font, color, a, spacing = 0) {
   x.fillText(s, px + spacing / 2, py); x.restore();      // letterSpacing trails the last glyph: shift half back to centre
 }
 window.renderAt = (t) => {
-  x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#000'; x.fillRect(0, 0, 1920, 1080); x.setTransform(3, 0, 0, 3, 0, 0);
+  x.setTransform(1, 0, 0, 1, 0, 0); x.fillStyle = '#000'; x.fillRect(0, 0, ${W}, ${H}); x.setTransform(${3 * K}, 0, 0, ${3 * K}, 0, 0);
   const a = alphaIn(t, S.T.title), b = alphaIn(t, S.T.lines), M = S.TITLE;
   if (M.kicker) {                                    // small label above the title: what Io is
     text(M.kicker[0], 320, 119, '400 7px ' + ZH, '#b9b2a2', a * 0.9, 3);
@@ -67,7 +68,7 @@ fs.writeFileSync(html, page_);
 const browser = await puppeteer.launch({ executablePath: chrome(), headless: true, args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('page error:', e.message));
-await page.setViewport({ width: 1920, height: 1080 });
+await page.setViewport({ width: W, height: H });
 await page.goto(`file://${html}`, { waitUntil: 'networkidle0' });
 const missing = await page.evaluate(() => window.ready);
 if (missing.length) { console.error(`fonts missing: ${missing.join(', ')}`); await browser.close(); process.exit(1); }

@@ -11,7 +11,8 @@ import { createRequire } from 'node:module';
 import { loadClip, rel, config, argv, chrome, kitRoot } from '../../../_kit/lib/film.mjs';
 
 const puppeteer = createRequire(`${kitRoot}/package.json`)('puppeteer-core');
-const A = argv();
+const A = argv(undefined, ['4k']);
+const K = A.has('4k') ? 2 : 1, W = 1920 * K, H = 1080 * K;   // --4k: the same layout drawn ×6 for the 4K delivery (sharp type)
 const [id] = A.positional();
 const C = loadClip(id);
 const n = Math.round(C.duration * config.fps);
@@ -23,7 +24,7 @@ const S = { caps: C.caps || [], counter: C.counter ?? null, hours, fps: config.f
 
 const page_ = `<!doctype html><meta charset="utf-8">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=JetBrains+Mono:wght@400&family=Noto+Serif+SC:wght@400&display=block" rel="stylesheet">
-<style>html,body{margin:0;background:transparent}</style><canvas id="cv" width="1920" height="1080"></canvas>
+<style>html,body{margin:0;background:transparent}</style><canvas id="cv" width="${W}" height="${H}"></canvas>
 <script>
 const S = ${JSON.stringify(S)};
 const EN = '"Cinzel", serif', ZH = '"Noto Serif SC", serif', MONO = '"JetBrains Mono", "Noto Serif SC", monospace';
@@ -38,7 +39,7 @@ function text(s, px, py, font, color, a, align = 'center', spacing = 0) {
   x.fillText(s, px + (align === 'center' ? spacing / 2 : 0), py); x.restore();
 }
 window.renderAt = (t, f) => {
-  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, 1920, 1080); x.setTransform(3, 0, 0, 3, 0, 0);
+  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, ${W}, ${H}); x.setTransform(${3 * K}, 0, 0, ${3 * K}, 0, 0);
   for (const [a0, a1, en, zh] of S.caps) {             // lower bar: English (Cinzel, tracked) over 中文
     const a = alphaIn(t, a0, a1);
     text(en.toUpperCase(), 320, 360 - BAR + 16, '600 10px ' + EN, '#e9e2d0', a, 'center', 3);
@@ -65,7 +66,7 @@ fs.writeFileSync(html, page_);
 const browser = await puppeteer.launch({ executablePath: chrome(), headless: true, args: ['--allow-file-access-from-files'] });
 const page = await browser.newPage();
 page.on('pageerror', (e) => console.error('page error:', e.message));
-await page.setViewport({ width: 1920, height: 1080 });
+await page.setViewport({ width: W, height: H });
 await page.goto(`file://${html}`, { waitUntil: 'networkidle0' });
 const missing = await page.evaluate(() => window.ready);
 if (missing.length) { console.error(`fonts missing: ${missing.join(', ')}`); await browser.close(); process.exit(1); }
