@@ -122,6 +122,12 @@ def run(sc, A, tag=None):
         print(f'SHOT {tag}: stills {stills} in {time.time() - t:.1f}s')
     if A.opt('persist'):                      # keep the synced scene between frames (static grounds aren't re-sent)
         sc.render.use_persistent_data = True
+    if A.opt('border'):                       # test: render only x0,y0,x1,y1 (px from the top-left), rest black
+        x0, y0, x1, y1 = (int(v) for v in A.opt('border').split(','))
+        W, H = sc.render.resolution_x, sc.render.resolution_y
+        r = sc.render
+        r.use_border, r.use_crop_to_border = True, False
+        r.border_min_x, r.border_max_x, r.border_min_y, r.border_max_y = x0 / W, x1 / W, 1 - y1 / H, 1 - y0 / H
     if A.opt('start'):                        # A/B tests: a slice of the clip
         sc.frame_start = int(A.opt('start'))
         sc.frame_end = int(A.opt('end', sc.frame_end))

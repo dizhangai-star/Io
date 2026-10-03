@@ -291,4 +291,7 @@ glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81
 - File size ≠ render cost: 02 (locked camera, static Jupiter and stars, only a 14-px astronaut moving) cost 70 min of
   Cycles for an 848 kB mp4. For a locked shot with a small moving part: render one full plate, then per frame only a
   border region around the mover (`render.use_border`, fixed seed, a margin of a few px for the denoiser) composited
-  over it → minutes, not an hour. Check what moves before a long render.
+  over it → minutes, not an hour. Check what moves before a long render. Tested on 02 f121 (`shot.py --border
+  x0,y0,x1,y1`, 120 px box, 80 px pasted onto f1's plate): 2.7 vs 17.6 s/frame; outside the box ≤ 1/255 (static
+  background identical), inside 54 dB (≤ 9/255 on 47 ridge-edge pixels: denoiser, as 32 vs 64 spp). Same only when
+  the camera, light, glare and motion blur don't change outside the box (the box must cover shadows/bounce).
