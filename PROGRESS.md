@@ -188,7 +188,7 @@ fallback: sub thump at 0.45 + a 100–200 Hz body + a skin tap; the first all-60
 (+7 dB) drove it ~6 dB into the limiter; now +0.9 dB. (Measure peaks in stereo: ffmpeg `-ac 1` sums L+R.)
 Levels judged on K-weighted momentary loudness (ffmpeg ebur128), not RMS (the 55 Hz sub dominated RMS and the meter:
 drone 0.3 → 0.11). Sprint 5 note: `check.mjs` compares `out/io.mp4` with the kit's film() (66 s, no head / dissolve);
-ours is 65.5 s, so it will report "duration off by −0.50 s" (expected).
+ours is 66.5 s (layout 67), so it will report "duration off by −0.50 s" (expected).
 **Trims: none (user 2026-10-03): the film stays 65.5 s.** Sprint 5 started 2026-10-03 (branch `sprint-5-render`).
 User 2026-10-03: captions unchanged, poster = 02 night, **no overnight batch: the user runs each shot by hand**
 (`node render.mjs <id> --resume`, any order, as many as fit). **Sprint 5.01 · renderer done (2026-10-03).**
@@ -207,7 +207,19 @@ won't play them), 04 re-rendered (frame 200 = raw at 59 dB). A wider Cycles pixe
 glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81 ppi). **Delivery = 4K** (user
 2026-10-03): compile upscales to 3840×2160 lanczos, yuv420p (chroma then at the render's full resolution; preview
 `out/04-eclipse-4k-preview.mp4`). compile.mjs still converts to yuv420p at 1080 on input (line ~41): change both.
-**Next (new session): 02 lands → compile at 4K, check.mjs, srt, poster (02 night).**
+**Sprint 5.02 · delivery done (2026-10-03).** All 6 clips rendered (frame counts = animatics). `compile.mjs` at 4K:
+clips lanczos → 3840×2160 kept yuv444p through joints/overlays, yuv420p only at the final encode; captions, 03 counter
+and the 06 card drawn natively at 4K (`overlay.mjs` / `card.mjs --4k`, ×6 instead of ×3); 71 s. `out/io.mp4` 3840×2160,
+24 fps, 65.50 s (66.5 after the slower end below), 67 MB. `check.mjs`: −15.9 LUFS, TP −2 dBTP, black/silence = the intended head, eclipse, fades; only FAIL
+= "duration off by −0.50 s" (expected, see above). **The kit's srt.mjs was 1 s early** (it lays clips end to end: no head,
+no dissolve) → `compile.mjs` now writes `out/io.srt` from the real clip starts (4 cues). Poster `out/poster.png`:
+02 frame 156 (6.5 s, arm pointing at Jupiter), clean (no caption), 3840×2160. **Heartbeats raised (user 2026-10-03: too quiet to hold
+your breath):** they were −22.8 / −20.3 / −18.4 LUFS momentary against breaths at −15.5 → take `rms` 0.008 → 0.0112 and
+cue v 0.6 / 0.8 / 1 → 1 / 1.06 / 1.12: now −15.9 / −15.6 / −15.3 (breaths −15.7, music −14.2); the last beat touches the
+−2 dB limiter (TP −1.7 dBTP, integrated −15.9 unchanged). **Slower end (user 2026-10-03: the last fade was too quick):** 06 is 5 s
+(was 4), its type fades out over 1.6 s (was 0.8; `card.mjs` T = [in, out, fade in, fade out], gone by 4.5, 0.5 s black
+tail) and the title note decays with it (cue d 2.4, rel 0.6: `syn`'s release starts after d) → **film 66.5 s**. **Film finished; waiting for the user's
+sign-off, then commit + PR.**
 
 ## Sprints
 0. ✅ Treatment, physics, scaffold.
@@ -216,7 +228,7 @@ glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81
    turntable still → user approves.
 3. Shots 01 → 06: action + Workbench animatic + 3-still Cycles check → locked (one shot per session). 01 ✅ 02 ✅ 03 ✅ 04 ✅ 05 ✅ 2026-10-03; 06 ✅ (title card, no Blender).
 4. 4.01 ✅ whole-film animatic + joints + caption/counter overlay in compile (2026-10-03); 4.02 ✅ score + recorded breath + heartbeat cut to it (2026-10-03).
-5. 5.01 ✅ renderer (--resume, persistent data, 02 at 32 spp) 2026-10-03; renders by the user, shot by shot → compile, `check.mjs`, srt, poster (02 night).
+5. 5.01 ✅ renderer (--resume, persistent data, 02 at 32 spp) 2026-10-03; renders by the user ✅; 5.02 ✅ 4K compile, `check.mjs`, srt, poster (02 night) 2026-10-03.
 
 ## Decisions (locked)
 - Format: 1920×1080, 24 fps, picture 1920×804 (2.39:1) rendered, letterboxed at encode (saves ~25 % render time).
@@ -233,7 +245,7 @@ glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81
   8.0 s, caption 5.0–9.4; plume lights after the diamond; vents for the dark climb; far ground = USGS mosaic stand-in
   (48° N) as relative colour over the polar palette; lander floodlight on in the eclipse; EEVEE animatic.
 - 06 locked (user 2026-10-03): title card drawn by `tools/card.mjs` (Chrome canvas, 巨物's type), IO / 永 恒 with a
-  木 卫 一 / A MOON OF JUPITER kicker above, physics readout from `physics.py --card`; 4 s, black head and tail.
+  木 卫 一 / A MOON OF JUPITER kicker above, physics readout from `physics.py --card`; 5 s (was 4: slower 1.6 s fade out), black head and tail.
 - 03: 39 h, eclipse to eclipse (no eclipse inside), eased rate (user 2026-10-03); EEVEE animatic (light is the beat).
 - 04: 20 s, time eased 619× → real time (Sun in at 4 s, gone at 9 s, black to 10.5, eyes adjust to 14.5, heartbeat,
   hold); still tail rendered as one EXR + keyed exposure (user 2026-10-03); EEVEE animatic.
@@ -245,7 +257,7 @@ glare: rejected. What remains is a 1-px line on the user's 27" 1080p monitor (81
   TAKES), none in 03; music cut dead at 04's first contact; three recorded heartbeats in 04 at 9.0 / 11.75 / 14.5 s;
   mixed by one gain to −16 LUFS + a −2 dB limiter (no loudnorm) in `compile.mjs`.
 - Standalone episode 2; grade matched to 巨物.
-- Length: 65.5 s, no trims (user 2026-10-03). Delivery 3840×2160 (4K upscale at compile, yuv420p); clip masters 4:4:4.
+- Length: 66.5 s (65.5, no trims; 06 then +1 s for a slower end) (user 2026-10-03). Delivery 3840×2160 (4K upscale at compile, yuv420p); clip masters 4:4:4.
 - 01 locked (user 2026-10-03): day, Sun elongation 70°; tilt −30° → +14°; lander only as a footpad in frame; prints 0.8 cm;
   one massif on the horizon (right).
 

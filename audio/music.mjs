@@ -121,7 +121,7 @@ const TAKES = {
   farIn: ['mlitty', 46.90, 48.70],
   farOut: ['mlitty', 49.95, 52.00],
   // one lub-dub of a steady 80 bpm loop (lub every 0.75 s, dub +0.245 s): lub 3.000, dub 3.245, silence from 3.46
-  heart: ['heart', 2.985, 3.70, { af: 'highpass=f=25', rms: 0.008 }],
+  heart: ['heart', 2.985, 3.70, { af: 'highpass=f=25', rms: 0.0112 }],   // +2.9 dB (user 2026-10-03): beats at breath level
 };
 const fs = await import('node:fs');
 function take(name) {
@@ -192,9 +192,9 @@ const KINDS = {
   },
   // 06: a single held note under the title (A4, glassy; an octave below, faint), as 巨物
   note: (t, v, o) => {
-    const d = o.d ?? 3.4;
-    syn(TTL, t, d, 69, 0.04 * v, 0.05, { n: 1, wave: 'sine', atk: 1.2, rel: 1.2, vib: 4 });
-    syn(TTL, t + 0.3, d - 0.3, 57, 0.02 * v, -0.1, { n: 3, det: 7, atk: 1.6, rel: 1.2, c0: 300, c1: 900 });
+    const d = o.d ?? 3.4, rel = o.rel ?? 1.2;
+    syn(TTL, t, d, 69, 0.04 * v, 0.05, { n: 1, wave: 'sine', atk: 1.2, rel, vib: 4 });
+    syn(TTL, t + 0.3, d - 0.3, 57, 0.02 * v, -0.1, { n: 3, det: 7, atk: 1.6, rel, c0: 300, c1: 900 });
   },
 };
 let sfxN = 0;

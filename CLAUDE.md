@@ -17,7 +17,7 @@ node render.mjs <id>                           # full Cycles clip → out/<id>.m
 node compile.mjs                               # every NN-*.js clip → out/io.mp4 (joints, captions, 03 counter)
 node compile.mjs --animatic                    # every out/<id>-animatic.mp4 → out/io-animatic.mp4 + out/timeline.json
 node ../../_kit/bin/check.mjs                  # final QC
-node ../../_kit/bin/srt.mjs                    # subtitles → out/io.srt
+node compile.mjs                               # also writes out/io.srt (not the kit srt.mjs: no head/dissolve)
 ```
 
 ## Working rules
