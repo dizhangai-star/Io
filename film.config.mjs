@@ -1,6 +1,6 @@
 // Kit config for this film (see ../../_kit/README.md). Picture comes from Blender (blender/), not engine.html:
 // clips/NN-*.js hold timing + captions so the kit's audio, compile and QC tools work unchanged.
-// Format: 1920×1080, 24 fps; the picture is rendered 1920×804 (2.39:1, blender/lib/shot.py RES), render.mjs letterboxes.
+// Format: 1920×1080, 24 fps; the picture is rendered 1920×804 (2.39:1, ../_lib/planetkit/shot.py RES), render.mjs letterboxes.
 export default {
   title: 'Io · 永恒',
   style: 'blender',

@@ -28,13 +28,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILM = os.path.dirname(os.path.dirname(HERE))
-sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools')]
+sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools'), os.path.join(os.path.dirname(FILM), '_lib')]
 import importlib
 import bpy
 import numpy as np
 from mathutils import Matrix, Quaternion, Vector
 import physics
-from lib import nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing, astronaut, retarget, globe
+from planetkit import nodes, rig, shot, jupiter, sky, prints, lander, astronaut, retarget
+from lib import io_world, landing, globe
 for m in (physics, nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing, astronaut, retarget, globe):
     importlib.reload(m)
 W, P, L, G = io_world, physics, landing, globe

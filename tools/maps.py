@@ -1,7 +1,7 @@
 """Measure / derive texture data from the shared asset library (system python3 with PIL + numpy + scipy).
 
     python3 tools/maps.py jupiter    the Jupiter map's mean linear luminance and Great Red Spot position
-                                     (the constants at the top of blender/lib/jupiter.py)
+                                     (the constants at the top of ../_lib/planetkit/jupiter.py)
     python3 tools/maps.py io         our site cut out of the USGS Io colour mosaic, reprojected to the film's local
                                      frame (X west, Y south, 1 km/px, site at the centre) →
                                      blender/textures/src/io_site_1km.png, + a palette of the site's colours

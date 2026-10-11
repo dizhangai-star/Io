@@ -29,3 +29,6 @@ node compile.mjs                               # also writes out/io.srt (not the
 - Picture is rendered 1920×804 (2.39:1); `render.mjs` pads to 1920×1080. Captions and the 03 counter are added at
   compile, not in Blender.
 - Kit path is `../../_kit` (the film sits two levels down).
+- Shared Blender code (nodes, rig, shot, sky, jupiter, astronaut, retarget, lander, prints) is the series library
+  `../_lib/planetkit` (planet Sprint 0, 2026-10-11); `blender/lib/` keeps only Io's own modules (io_world, globe,
+  landing). A change to `../_lib` must keep Io's and Europa's frames unchanged (`../_lib/README.md`).

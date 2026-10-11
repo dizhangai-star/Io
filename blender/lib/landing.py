@@ -8,7 +8,8 @@ drop stays the terrain's job (io_world.terrain / ground_z, centred on the shot's
 import math
 
 import numpy as np
-from . import io_world as W, prints, lander
+from planetkit import prints, lander
+from . import io_world as W
 
 PAD = (1.03, 2.82)                                               # the footpad 01 frames (az 20°, 3.0 m)
 LANDER = (4.62, 1.06)                                            # body centre: az 77°, 4.7 m from 01's camera

@@ -23,12 +23,13 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILM = os.path.dirname(os.path.dirname(HERE))
-sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools')]
+sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools'), os.path.join(os.path.dirname(FILM), '_lib')]
 import importlib
 import bpy
 from mathutils import Matrix, Quaternion, Vector
 import physics
-from lib import nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing
+from planetkit import nodes, rig, shot, jupiter, sky, prints, lander
+from lib import io_world, landing
 for m in (physics, nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing):
     importlib.reload(m)
 W = io_world
@@ -78,7 +79,7 @@ world, turn, smear = sky.stars(sc, sky.px_angle(LENS, A.pct), gain=float(A.opt('
 GRS_MID = float(A.opt('grs-mid', 0.0))                           # the GRS's longitude from the central meridian at midnight
 grs0 = GRS_MID - 360.0 * (C['hours'] / 2) / P.P_ROT_J_IO
 jup, _ = jupiter.build(sc, cam_loc, grs=grs0)
-sun_j, _ = jupiter.io_shadow(sc, sun, jup, (0.0, 0.0, W.ground_z(height, 0, 0)))
+sun_j, _ = jupiter.moon_shadow(sc, sun, jup, (0.0, 0.0, W.ground_z(height, 0, 0)), 'Io', physics.R_IO)
 if float(A.opt('glare', 1.0)) > 0:
     sky.glare(sc, strength=float(A.opt('glare', 1.0)))
 J_LOC, J_ROT, J_SCL = jup.matrix_world.decompose()

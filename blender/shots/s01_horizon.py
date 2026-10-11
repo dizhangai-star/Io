@@ -7,7 +7,7 @@ the frame top and keeps coming until the camera stops with the horizon low and t
 
 Tilt: −30° (frame −47°…−13°: ground 1.5–7 m out) → +14° (frame −3°…+31°; Jupiter 5.6°…23.9°; user 2026-10-03), trapezoid speed
 with smooth ramps, hold 0–0.8 s and 7.4–9 s (caption IO 5.5–8.6). Jupiter's limb enters the frame top at pitch
-≈ −12°. Lander = lib/lander.py: only one footpad, its leg and the ladder foot are in frame; the body is right of it.
+≈ −12°. Lander = planetkit/lander.py: only one footpad, its leg and the ladder foot are in frame; the body is right of it.
 
     node render.mjs 01-horizon --animatic        (→ out/01-horizon-animatic.mp4)
     node preview.mjs 01-horizon 0.5 4.5 8.5 --pct 50
@@ -19,13 +19,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILM = os.path.dirname(os.path.dirname(HERE))
-sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools')]
+sys.path[:0] = [os.path.dirname(HERE), os.path.join(FILM, 'tools'), os.path.join(os.path.dirname(FILM), '_lib')]
 import importlib
 import bpy
 import numpy as np
 from mathutils import Vector
 import physics
-from lib import nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing
+from planetkit import nodes, rig, shot, jupiter, sky, prints, lander
+from lib import io_world, landing
 for m in (physics, nodes, rig, shot, io_world, jupiter, sky, prints, lander, landing):
     importlib.reload(m)
 W = io_world
