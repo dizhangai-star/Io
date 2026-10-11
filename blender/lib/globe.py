@@ -19,7 +19,8 @@ import bpy
 import numpy as np
 from mathutils import Matrix, Vector
 import physics as P
-from . import nodes, io_world as W
+from planetkit import nodes
+from . import io_world as W
 
 R = W.R_IO_M
 

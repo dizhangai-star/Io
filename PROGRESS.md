@@ -1,6 +1,11 @@
 # Io · 永恒: progress
 
 ## State (2026-10-03)
+**Planet Sprint 0 (2026-10-11, branch `sprint-0-planet-lib`):** the shared modules (nodes, rig, shot, sky, jupiter,
+astronaut, retarget, lander, prints) moved to `../_lib/planetkit`; `blender/lib/` keeps io_world, globe, landing.
+`jupiter.io_shadow(…)` is now `jupiter.moon_shadow(…, 'Io', physics.R_IO)`; `io_world.astronaut_proxy` re-exports
+`planetkit.astronaut.proxy`. Every shot's scene fingerprint is unchanged (`../_lib/README.md`).
+
 **DONE 2026-10-03:** *Io · 永恒*, 66.5 s, delivered `out/io.mp4` (3840×2160), `io.srt`, `poster.png`; merged (PR #12).
 
 **Sprint 1 (look spike) done 2026-10-02.** Stills in `frames/spike/` (sheet.png):

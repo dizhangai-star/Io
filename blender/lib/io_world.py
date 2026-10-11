@@ -14,7 +14,8 @@ import os
 import bpy
 import numpy as np
 import physics as P
-from . import nodes
+from planetkit import nodes
+from planetkit.astronaut import proxy as astronaut_proxy
 
 R_IO_M = P.R_IO * 1000.0
 
@@ -141,7 +142,7 @@ GALILEO_M_PX = 5.5
 def surface(name='IoSurface', scale=1.0, dark=0.0, red=0.0, frost=0.0, prints=False, clod=0.25):
     """Io ground. Base colour: the site's polar browns, laid out by a km-scale noise mixed with the Galileo pattern;
     over it frost fields (~10 %; `frost` 0..1 widens them), sulfur deposits (~6 %), `red` (0..1) red sulfur, `dark`
-    (0..1) dark lava flows. `prints`: the mesh's 'prints' point attribute (lib/prints.py) marks trodden soil: frost
+    (0..1) dark lava flows. `prints`: the mesh's 'prints' point attribute (planetkit/prints.py) marks trodden soil: frost
     broken, the brown underneath compacted (darker, a little smoother).
     Bump: 20 m undulation, 1 m clods (`clod` m; less for a close-up, where the mesh carries the relief), 5 cm grain.
     `scale` stretches every size."""
@@ -293,31 +294,6 @@ def _mat(name, color, rough=0.5, metal=0.0):
     g.set(b, 'Base Color', color)
     g.output(g.o(b, 'BSDF'))
     return m
-
-
-def astronaut_proxy(sc, loc, height=1.85, heading=0.0):
-    """Suit stand-in: a white capsule (body) + sphere (helmet) + pack box, 1.85 m tall."""
-    suit = _mat('SuitProxy', (0.80, 0.79, 0.76), 0.7)
-    parts = []
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.28, depth=height * 0.62, location=(0, 0, height * 0.42))
-    parts.append(bpy.context.object)
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=0.19, location=(0, 0, height * 0.85))
-    parts.append(bpy.context.object)
-    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0.26, height * 0.55))
-    parts.append(bpy.context.object)
-    parts[-1].scale = (0.45, 0.22, 0.6)
-    for p in parts:
-        p.data.materials.append(suit)
-    bpy.ops.object.select_all(action='DESELECT')
-    for p in parts:
-        p.select_set(True)
-    bpy.context.view_layer.objects.active = parts[0]
-    bpy.ops.object.join()
-    ob = bpy.context.object
-    ob.name = 'Astronaut'
-    ob.location = loc
-    ob.rotation_euler = (0, 0, math.radians(heading))
-    return ob
 
 
 def lander_proxy(sc, loc, heading=0.0):

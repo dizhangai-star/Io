@@ -10,7 +10,7 @@
 //   without it the folder is cleared first. Real renders keep the synced scene between frames (persistent data:
 //   8–30 % faster, pixel-identical in the Sprint 5 A/B). clips/<id>.js `samples: N` overrides config.samples.
 //   Real renders are encoded 4:4:4 (the 1-px eclipse ring on black breaks into colour steps at 4:2:0); compile makes
-//   the delivery. Frames are the 2.39:1 picture (blender/lib/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
+//   the delivery. Frames are the 2.39:1 picture (../_lib/planetkit/shot.py RES 1920×804); encoding pads them to 1920×1080 (letterbox).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { loadClip, rel, config, argv, kitRoot } from '../../_kit/lib/film.mjs';
@@ -35,7 +35,7 @@ else if (fs.existsSync(dir)) for (const f of fs.readdirSync(dir))    // a frame 
 
 const opt = (k) => A.opt(k) ?? (anim ? { engine: 'workbench', pct: '50' }[k] : undefined);
 const pass = ['samples', 'pct', 'look', 'engine'].flatMap((k) => (opt(k) ? [`--${k}`, opt(k)] : []));
-// clip.freeze (s): from that second on, frames are one EXR shown with each frame's exposure (blender/lib/shot.py freeze);
+// clip.freeze (s): from that second on, frames are one EXR shown with each frame's exposure (../_lib/planetkit/shot.py freeze);
 // real renders only, the animatic renders every frame
 if (C.freeze && !anim) pass.push('--freeze', String(Math.round(C.freeze * config.fps) + 1));
 if (anim) pass.push('--draft', '1');
